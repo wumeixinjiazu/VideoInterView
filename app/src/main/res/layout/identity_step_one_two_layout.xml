@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:focusable="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tv_info_warn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="#F2F2F2"
+        android:drawableStart="@drawable/ic_warn_light"
+        android:drawablePadding="10dp"
+        android:padding="10dp"
+        android:text="请仔细核对下列信息，如有误可点击进行修改"
+        android:textColor="#A5F34141"
+        android:textSize="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_name"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="姓名"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_info_warn" />
+
+    <TextView
+        android:id="@+id/tv_id_card"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="身份证号"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_name" />
+
+    <TextView
+        android:id="@+id/tv_sex"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="性别"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_id_card" />
+
+    <TextView
+        android:id="@+id/tv_birth"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="生日"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_sex" />
+
+    <TextView
+        android:id="@+id/tv_nation"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="民族"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_birth" />
+
+    <TextView
+        android:id="@+id/tv_id_address"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="证件地址"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_nation" />
+
+    <TextView
+        android:id="@+id/tv_sign_office"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="签发机关"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_id_address" />
+
+    <TextView
+        android:id="@+id/tv_start_time"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="起始期限"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_sign_office" />
+
+    <TextView
+        android:id="@+id/tv_end_time"
+        style="@style/TextViewStyle_indentity_info"
+        android:text="结束期限"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_name"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入姓名"
+        app:layout_constraintBottom_toBottomOf="@id/tv_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_name" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_id_card"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入身份证号"
+        app:layout_constraintBottom_toBottomOf="@id/tv_id_card"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_id_card" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_sex"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入性别"
+        app:layout_constraintBottom_toBottomOf="@id/tv_sex"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_sex" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_birth"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入生日"
+        app:layout_constraintBottom_toBottomOf="@id/tv_birth"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_birth" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_nation"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入民族"
+        app:layout_constraintBottom_toBottomOf="@id/tv_nation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_nation" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_id_address"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入证件地址"
+        app:layout_constraintBottom_toBottomOf="@id/tv_id_address"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_id_address" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_sign_office"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入签发机关"
+        app:layout_constraintTop_toBottomOf="@id/et_id_address"
+        app:layout_constraintBottom_toBottomOf="@id/tv_sign_office"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_sign_office" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_start_time"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入起始期限"
+        app:layout_constraintBottom_toBottomOf="@id/tv_start_time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_start_time" />
+
+    <com.videocomm.VideoInterView.view.ClearEditText
+        android:id="@+id/et_end_time"
+        style="@style/EditTextStyle_identity_info"
+        android:background="@null"
+        android:hint="请输入结束期限"
+        app:layout_constraintBottom_toBottomOf="@id/tv_end_time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintTop_toTopOf="@id/tv_end_time" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_name"
+        app:layout_constraintStart_toStartOf="@id/tv_name"
+        app:layout_constraintTop_toBottomOf="@id/tv_name" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_id_card"
+        app:layout_constraintStart_toStartOf="@id/tv_id_card"
+        app:layout_constraintTop_toBottomOf="@id/tv_id_card" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_sex"
+        app:layout_constraintStart_toStartOf="@id/tv_sex"
+        app:layout_constraintTop_toBottomOf="@id/tv_sex" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_birth"
+        app:layout_constraintStart_toStartOf="@id/tv_birth"
+        app:layout_constraintTop_toBottomOf="@id/tv_birth" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_nation"
+        app:layout_constraintStart_toStartOf="@id/tv_nation"
+        app:layout_constraintTop_toBottomOf="@id/tv_nation" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_id_address"
+        app:layout_constraintStart_toStartOf="@id/tv_id_address"
+        app:layout_constraintTop_toBottomOf="@id/tv_id_address" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_sign_office"
+        app:layout_constraintStart_toStartOf="@id/tv_sign_office"
+        app:layout_constraintTop_toBottomOf="@id/tv_sign_office" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_start_time"
+        app:layout_constraintStart_toStartOf="@id/tv_start_time"
+        app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/gray_e4"
+        app:layout_constraintEnd_toEndOf="@id/et_end_time"
+        app:layout_constraintStart_toStartOf="@id/tv_end_time"
+        app:layout_constraintTop_toBottomOf="@id/tv_end_time" />
+
+    <Button
+        android:id="@+id/btn_info_next"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="100dp"
+        android:background="@drawable/bg_btn_rect_red"
+        android:text="@string/next"
+        android:textColor="@color/white"
+        android:onClick="onClick"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="h,1:7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_end_time" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="100dp" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

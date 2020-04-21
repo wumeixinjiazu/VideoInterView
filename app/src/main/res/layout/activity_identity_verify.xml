@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/ll_progress"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/bg_title"
+        android:gravity="center_vertical"
+        android:paddingTop="20dp"
+        app:layout_constraintBottom_toTopOf="@id/content"
+        app:layout_constraintDimensionRatio="w,1:5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.videocomm.VideoInterView.view.ProgressCustom
+            android:id="@+id/progress_custom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_progress">
+
+        <include
+            android:id="@+id/step_one"
+            layout="@layout/identity_step_one_layout"
+            android:visibility="visible" />
+
+        <include
+            android:id="@+id/step_one_two"
+            layout="@layout/identity_step_one_two_layout"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/step_two"
+            layout="@layout/identity_step_two_layout"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/step_two_one"
+            layout="@layout/identity_step_two_one_layout"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/step_two_two"
+            layout="@layout/identity_step_two_two_layout"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/step_three"
+            layout="@layout/identity_step_three_layout"
+            android:visibility="gone" />
+
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

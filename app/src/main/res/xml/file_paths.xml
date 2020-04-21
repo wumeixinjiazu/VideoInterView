@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+name是自定义的一个别名，path是这个共享的目录，这里的path值表示共享外部私有目录file/images下的文件。如果是输入的是" . "  "则表示共享外部私有目录下的file/目录下的所有文件。
+其中<paths>元素有以下几个子节点：
+
+<files-path>：内部存储空间应用私有目录下的 files/ 目录，等同于 Context.getFilesDir() 所获取的目录路径
+<cache-path>：内部存储空间应用私有目录下的 cache/ 目录，同于 Context.getCacheDir() 所获取的目录路径；
+<external-path>：外部存储空间根目录，等同于 Environment.getExternalStorageDirectory() 所获取的目录路径；
+<external-files-path>外部存储空间应用私有目录下的 files/ 目录，等同于 Context.getExternalFilesDir(null) 所获取的目录路径；
+<external-cache-path>：外部存储空间应用私有目录下的 cache/ 目录，等同于 Context.getExternalCacheDir()；
+————————————————
+版权声明：本文为CSDN博主「养生阿华田」的原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/weixin_38261570/article/details/81046352-->
+<paths>
+    <!-- 这个是保存拍照图片的路径,必须配置。 -->
+    <external-files-path
+        name="images"
+        path="Pictures" />
+    <external-path
+        name="my_images"
+        path="Android/data/com.videocomm.videointerview.fileprovider/files/Pictures"/>
+
+</paths>

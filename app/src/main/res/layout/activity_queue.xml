@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tv_queue_business"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:text="您正在办理房屋装修贷业务"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_queue_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="您前面还有排队等待人数"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_queue_business" />
+
+    <ImageView
+        android:id="@+id/iv_queue_circle"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/ic_queue_circle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_queue_number" />
+
+    <TextView
+        android:id="@+id/tv_queue_real"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:gravity="center"
+        android:text="1"
+        android:textColor="@color/white"
+        android:textSize="80dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/iv_queue_circle"
+        app:layout_constraintEnd_toEndOf="@id/iv_queue_circle"
+        app:layout_constraintStart_toStartOf="@id/iv_queue_circle"
+        app:layout_constraintTop_toTopOf="@id/iv_queue_circle" />
+
+    <TextView
+        android:id="@+id/tv_queue_time_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:text="您已排队等待"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="@id/tv_queue_number"
+        app:layout_constraintTop_toBottomOf="@id/tv_queue_real" />
+
+    <TextView
+        android:id="@+id/tv_queue_time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="02:08"
+        android:textColor="#F34141"
+        android:textSize="25dp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_queue_time_text"
+        app:layout_constraintStart_toEndOf="@id/tv_queue_time_text"
+        app:layout_constraintTop_toTopOf="@id/tv_queue_time_text" />
+</androidx.constraintlayout.widget.ConstraintLayout>

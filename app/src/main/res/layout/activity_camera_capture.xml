@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.videocomm.VideoInterView.view.CameraSurfaceView
+        android:id="@+id/surface_camera"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="h,1:1.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_camera_rect"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:rotation="-90"
+        android:background="@drawable/ic_camera_rect"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toStartOf="@id/surface_camera"
+        app:layout_constraintDimensionRatio="w,1:1.5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/surface_camera"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请将方框对准身份证正面图像拍摄、并确保字迹清晰"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/white"
+        android:textSize="15dp"
+        app:layout_constraintEnd_toEndOf="@id/surface_camera"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_flash_light"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/ic_flash_off"
+        android:onClick="onClick"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/surface_camera"
+        app:layout_constraintTop_toBottomOf="@id/iv_red_rect" />
+
+
+    <ImageView
+        android:id="@+id/iv_red_rect"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/ic_red_circle"
+        android:onClick="onClick"
+        app:layout_constraintBottom_toTopOf="@id/iv_flash_light"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/surface_camera"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_capture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_camera_normal"
+        android:onClick="onClick"
+        app:layout_constraintBottom_toBottomOf="@id/iv_red_rect"
+        app:layout_constraintEnd_toEndOf="@id/iv_red_rect"
+        app:layout_constraintStart_toStartOf="@id/iv_red_rect"
+        app:layout_constraintTop_toTopOf="@id/iv_red_rect" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

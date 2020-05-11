@@ -2,8 +2,15 @@ package com.videocomm.VideoInterView.utils;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.util.Log;
+import android.widget.Toast;
+
+import static android.content.pm.PackageManager.GET_ACTIVITIES;
 
 /**
  * @author[wengCJ]
@@ -36,7 +43,6 @@ public class AppUtil {
         try {
             PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
             //返回版本号
-            ToastUtil.show(packageInfo.versionName + "");
             return packageInfo.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
@@ -72,5 +78,12 @@ public class AppUtil {
     }
 
 
-
+    public static String getUID() {
+        String macAddress = null;
+        WifiManager wifiManager = (WifiManager) app.getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = (null == wifiManager ? null :
+                wifiManager.getConnectionInfo());
+        macAddress = info.getMacAddress();
+        return macAddress;
+    }
 }

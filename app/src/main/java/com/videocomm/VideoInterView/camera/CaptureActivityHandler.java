@@ -23,7 +23,9 @@ public class CaptureActivityHandler extends Handler {
             // closest thing tos
             // continuous AF. It does seem to hunt a bit, but I'm not sure what
             // else to do.
-            CameraManager.get().requestAutoFocus(this, R.id.auto_focus);
+            if (CameraManager.get().getCurCamera() != null) {
+                CameraManager.get().requestAutoFocus(this, R.id.auto_focus);
+            }
         }
     }
 

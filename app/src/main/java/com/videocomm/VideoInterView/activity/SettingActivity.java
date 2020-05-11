@@ -2,6 +2,7 @@ package com.videocomm.VideoInterView.activity;
 
 import android.os.Bundle;
 import android.text.Editable;
+import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -14,7 +15,9 @@ import androidx.annotation.Nullable;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
+import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
+import com.videocomm.mediasdk.VComMediaSDK;
 
 /**
  * @author[wengCJ]
@@ -55,7 +58,8 @@ public class SettingActivity extends TitleActivity implements View.OnClickListen
 
         ivAddressClean.setOnClickListener(this);
         ivPortClean.setOnClickListener(this);
-
+        VComMediaSDK sdkUnit = VComMediaSDK.GetInstance();
+        tvSdkVersion.setText("VideoComm SDK for Android " + JsonUtil.jsonToStr(sdkUnit.VCOM_GetSDKVersion(), "version"));
         initListener();
     }
 
@@ -117,7 +121,7 @@ public class SettingActivity extends TitleActivity implements View.OnClickListen
     private void initData() {
         etServerAddress.setText(SpUtil.getInstance().getString(SpUtil.SERVERADDR, getResources().getString(R.string.default_server_addr)));
         etServerPort.setText(SpUtil.getInstance().getString(SpUtil.SERVERPORT, getResources().getString(R.string.default_server_port)));
-        swLivingCheck.setChecked(SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, false));
+        swLivingCheck.setChecked(SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true));
         swRiskReport.setChecked(SpUtil.getInstance().getBoolean(SpUtil.RISKREPORTSTATE, true));
     }
 
@@ -158,5 +162,16 @@ public class SettingActivity extends TitleActivity implements View.OnClickListen
     private void clearEditFocus() {
         etServerAddress.clearFocus();
         etServerPort.clearFocus();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        saveData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

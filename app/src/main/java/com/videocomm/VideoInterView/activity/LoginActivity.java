@@ -1,14 +1,17 @@
 package com.videocomm.VideoInterView.activity;
 
-import android.app.Activity;
+import android.Manifest;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.Editable;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -20,18 +23,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
-import com.videocomm.VideoInterView.bean.CodeBean;
 import com.videocomm.VideoInterView.bean.LoginBean;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
+import com.videocomm.VideoInterView.utils.AppUtil;
 import com.videocomm.VideoInterView.utils.DialogUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.LoginUtil;
+import com.videocomm.VideoInterView.utils.PermissionUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
+import com.videocomm.mediasdk.VComMediaSDK;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +48,13 @@ import okhttp3.Callback;
 import okhttp3.Headers;
 import okhttp3.Response;
 
+import static com.videocomm.VideoInterView.Constant.LOGIN_PERMISSION_CODE;
+
 public class LoginActivity extends TitleActivity implements View.OnClickListener {
+    /**
+     * app需要用到的动态添加权限 6.0以上才会去申请
+     */
+    private String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO};
 
     private EditText etPhone;
     private EditText etImageCode;
@@ -58,17 +71,21 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
     private static final int HANDLER_SEND_MSG_SUCCESS = 1001;
     private static final int HANDLER_GET_IMAGE_CODE_SUCCESS = 1002;
     private static final int HANDLER_GET_IMAGE_CODE_FAILD = 1003;
+    private static final int HANDLER_LOGIN_SUCCESS = 1004;
+    private static final int HANDLER_LOGIN_FAILD = 1005;
 
     private Handler mHandler = new LoginHandler(this);
 
     private static long time;//记录当前时间
     private Dialog mLoadingDialog;
+    private TextView tvAppVersion;
+    private VComMediaSDK sdkUnit;
 
     static class LoginHandler extends Handler {
         private int startTime = 30;
         private LoginActivity activity;
 
-        public LoginHandler(LoginActivity loginActivity) {
+        LoginHandler(LoginActivity loginActivity) {
             activity = loginActivity;
         }
 
@@ -96,7 +113,33 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
                     activity.ivImageCodePic.setImageBitmap(bitmap);
                     break;
                 case HANDLER_GET_IMAGE_CODE_FAILD:
+                    ToastUtil.show(activity.getString(R.string.refresh_fail_retry));
                     activity.ivImageCodePic.setBackgroundResource(R.drawable.image_code);
+                    break;
+                case HANDLER_LOGIN_SUCCESS:
+                    String content = (String) msg.obj;
+                    if (!content.contains("登录成功")) {
+                        sendEmptyMessage(HANDLER_LOGIN_FAILD);
+                        return;
+                    }
+                    LoginBean bean = JsonUtil.jsonToBean(content, LoginBean.class);
+                    if (bean.getErrorcode() != 0) {
+                        ToastUtil.show(bean.getMsg());
+                    } else if (bean.getErrorcode() == 0) {
+                        SpUtil.getInstance().saveString(SpUtil.TOKEN, bean.getContent().getToken());
+                        SpUtil.getInstance().saveString(SpUtil.USERPHONE, bean.getContent().getPhoneNumber());
+                        SpUtil.getInstance().saveString(SpUtil.APPID, bean.getContent().getAppId());
+                        //4.启动页面
+                        activity.startActivity(new Intent(activity, ChooseNetworkActivity.class));
+                        ToastUtil.show(activity.getString(R.string.login_success));
+                    }
+                    activity.mLoadingDialog.dismiss();
+                    break;
+                case HANDLER_LOGIN_FAILD:
+                    activity.mLoadingDialog.dismiss();
+                    ToastUtil.show(activity.getString(R.string.login_fail_retry));
+                    break;
+                default:
                     break;
             }
         }
@@ -105,12 +148,12 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_login);
-        //初始化标题布局
-        mTitleLayoutManager.setTitle(getString(R.string.login)).showRight(true).setRightIcon(R.drawable.ic_setting).setRightListener(this);
 
         initView();
         refreshImageCode();
+        sdkUnit = VComMediaSDK.GetInstance();
     }
 
     private void initView() {
@@ -123,7 +166,7 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         btnLogin = findViewById(R.id.btn_login);
         tvSendCode = findViewById(R.id.tv_send_code);
         ivImageCodePic = findViewById(R.id.iv_image_code_pic);
-
+        tvAppVersion = findViewById(R.id.tv_app_version);
         etPhone.setOnClickListener(this);
         etImageCode.setOnClickListener(this);
         etCode.setOnClickListener(this);
@@ -138,6 +181,7 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
 
         //初始化数值
         etPhone.setText(SpUtil.getInstance().getString(SpUtil.USER_MOBILE));
+        tvAppVersion.setText("VideoComm V" + AppUtil.getVersionName(this));
     }
 
     /**
@@ -164,7 +208,6 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         });
 
         etCode.addTextChangedListener(new SimpleTextWatcher() {
-
             @Override
             public void afterTextChanged(Editable s) {
                 ivCodeClean.setVisibility(0 == s.length() ? View.GONE : View.VISIBLE);
@@ -200,9 +243,10 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 switch (actionId) {
                     case EditorInfo.IME_ACTION_GO:
-                        Log.e("BALLACK", "IME_ACTION_GO");
                         clearEditFocus();
                         startActivity(new Intent(LoginActivity.this, ChooseNetworkActivity.class));
+                        break;
+                    default:
                         break;
                 }
                 return true;
@@ -229,8 +273,11 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
                 startActivity(new Intent(LoginActivity.this, SettingActivity.class));
                 break;
             case R.id.btn_login://登录
-                clearEditFocus();
-                checkDataAndLogin();
+                if (PermissionUtil.checkPermission(this, permissions, LOGIN_PERMISSION_CODE)) {
+                    //成功
+                    clearEditFocus();
+                    checkDataAndLogin();
+                }
                 break;
             case R.id.tv_send_code://验证码请求
                 checkDataAndSend();
@@ -247,7 +294,53 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             case R.id.iv_code_clean://验证码清除
                 etCode.setText("");
                 break;
+            default:
+                break;
         }
+    }
+
+    //权限申请回调
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.d(tag, "requestCode" + requestCode);
+        switch (requestCode) {
+            case LOGIN_PERMISSION_CODE:
+                if (permissions.length == this.permissions.length && grantResults[0] == 0) {
+                    //成功 调用相机
+                    clearEditFocus();
+                    checkDataAndLogin();
+                } else {
+                    //某个权限拒绝
+                    for (String permission : this.permissions) {
+                        //判断用户拒绝权限是是否勾选don't ask again选项，若勾选需要客户手动打开权限
+                        if (!ActivityCompat.shouldShowRequestPermissionRationale(LoginActivity.this, permission)) {
+                            showWaringDialog();
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 提示用户自行打开权限
+     */
+    private void showWaringDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("警告！")
+                .setMessage("请前往设置->应用->VideoTalk->权限中打开相关权限，否则功能无法正常运行！")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    }
+                }).show();
     }
 
     /**
@@ -258,14 +351,12 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         HttpUtil.requestImageCaptcha(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                ToastUtil.show(getString(R.string.refresh_fail_retry));
                 mHandler.sendEmptyMessage(HANDLER_GET_IMAGE_CODE_FAILD);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.code() != 200) {
-                    ToastUtil.show(getString(R.string.refresh_fail_retry));
                     mHandler.sendEmptyMessage(HANDLER_GET_IMAGE_CODE_FAILD);
                     return;
                 }
@@ -358,40 +449,29 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.d(tag, e.getMessage());
-                mLoadingDialog.dismiss();
-                ToastUtil.show(getString(R.string.login_fail_retry));
+                mHandler.sendEmptyMessage(HANDLER_LOGIN_FAILD);
+
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-
-                if (response.code() != 200) {
-                    ToastUtil.show(getString(R.string.login_fail_retry));
-                    mLoadingDialog.dismiss();
-                    return;
-                }
-                LoginBean bean = JsonUtil.jsonToBean(response.body().string(), LoginBean.class);
-                if (bean.getErrorcode() != 0) {
-                    ToastUtil.show(bean.getMsg());
-                } else if (bean.getErrorcode() == 0) {
-                    SpUtil.getInstance().saveString(SpUtil.TOKEN, bean.getContent().getToken());
-                    SpUtil.getInstance().saveString(SpUtil.USERPHONE, bean.getContent().getUserPhone());
-                    //4.启动页面
-                    startActivity(new Intent(LoginActivity.this, ChooseNetworkActivity.class));
-                    finish();
-                    ToastUtil.show(getString(R.string.login_success));
-                }
-                mLoadingDialog.dismiss();
+                String content = response.body().string();
+                Log.d(tag, content);
+                Message obtain = Message.obtain();
+                obtain.what = HANDLER_LOGIN_SUCCESS;
+                obtain.obj = content;
+                mHandler.sendMessage(obtain);
             }
         });
-
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         //修复由于内存不足导致页面的文字清除会展示BUG
+        //初始化标题布局
+        mTitleLayoutManager.setTitle(getString(R.string.login)).showRight(true).setRightIcon(R.drawable.ic_setting).setRightListener(this);
+
         clearEditFocus();
         ivPhoneClean.setVisibility(View.INVISIBLE);
         ivImageClean.setVisibility(View.INVISIBLE);
@@ -407,7 +487,6 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         etCode.clearFocus();
     }
 
-
     @Override
     public void onBackPressed() {
         Log.i(tag, "onBackPressed");
@@ -419,5 +498,12 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         }
         ToastUtil.cancle();
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sdkUnit.VCOM_Release();
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 }

@@ -12,6 +12,7 @@ import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
 import com.videocomm.VideoInterView.utils.AppUtil;
+import com.videocomm.VideoInterView.utils.Rom;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,8 +28,10 @@ public class CameraManager {
     private final AutoFocusCallback autoFocusCallback;
     private Camera camera;
     private static CameraManager cameraManager;
+    private AutoFocusManager autoFocusManager;
+    private boolean previewing;
 
-    public CameraManager() {
+    private CameraManager() {
         autoFocusCallback = new AutoFocusCallback();
     }
 
@@ -71,7 +74,25 @@ public class CameraManager {
         camera.setPreviewDisplay(holder);
         startPreview();
         Camera.Parameters parameters = camera.getParameters();
-        parameters.setPictureSize(1024, 768);
+        if (!Rom.isEmui()) {
+            parameters.setPictureSize(800, 600);
+        } else {
+            float reqRatioPicture = ((float) 600) / 800;
+            float curRatioPicture, deltaRatioPicture;
+            float deltaRatioMinPicture = Float.MAX_VALUE;
+            List<Camera.Size> mPictureSizes = null;
+            mPictureSizes = parameters.getSupportedPictureSizes();
+            Camera.Size pictureSize = null;
+            for (Camera.Size size : mPictureSizes) {
+                curRatioPicture = ((float) size.width) / size.height;
+                deltaRatioPicture = Math.abs(reqRatioPicture - curRatioPicture);
+                if (deltaRatioPicture < deltaRatioMinPicture) {
+                    deltaRatioMinPicture = deltaRatioPicture;
+                    pictureSize = size;
+                }
+            }
+            parameters.setPictureSize(pictureSize.width, pictureSize.height);
+        }
         camera.setParameters(parameters);
     }
 
@@ -89,8 +110,10 @@ public class CameraManager {
      * Asks the camera hardware to begin drawing preview frames to the screen.
      */
     public void startPreview() {
-        if (camera != null) {
+        if (camera != null && !previewing) {
             camera.startPreview();
+            previewing = true;
+            autoFocusManager = new AutoFocusManager(camera);
         }
     }
 
@@ -98,10 +121,15 @@ public class CameraManager {
      * Tells the camera to stop drawing preview frames.
      */
     public void stopPreview() {
-        if (camera != null) {
+        if (autoFocusManager != null) {
+            autoFocusManager.stop();
+            autoFocusManager = null;
+        }
+
+        if (camera != null && previewing) {
             camera.setPreviewCallback(null);
             camera.stopPreview();
-            autoFocusCallback.setHandler(null, 0);
+            previewing = false;
         }
     }
 
@@ -192,7 +220,7 @@ public class CameraManager {
      * @param camera   camera
      */
     public void setCameraDisplayOrientation(
-                                            int cameraId, Camera camera) {
+            int cameraId, Camera camera) {
         android.hardware.Camera.CameraInfo info =
                 new android.hardware.Camera.CameraInfo();
         android.hardware.Camera.getCameraInfo(cameraId, info);
@@ -227,5 +255,20 @@ public class CameraManager {
         }
         //设置角度
         camera.setDisplayOrientation(result);
+    }
+
+    /**
+     * 拍照
+     *
+     * @param shutter ShutterCallback
+     * @param raw     PictureCallback
+     * @param jpeg    PictureCallback
+     */
+    public synchronized void takePicture(final Camera.ShutterCallback shutter, final Camera.PictureCallback raw,
+                                         final Camera.PictureCallback jpeg) {
+
+        camera.takePicture(shutter, raw, jpeg);
+
+
     }
 }

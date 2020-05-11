@@ -57,7 +57,8 @@ public class ParamsActivity extends TitleActivity implements View.OnClickListene
 
         switch (recordParamsId) {
             case R.string.choose_city:
-                mTitleLayoutManager.setTitle(R.string.choose_city).setBackgroundColor(R.color.white).setTitleGravity(Gravity.CENTER).setLeftIcon(R.drawable.ic_left_arrow_gray).showLeft(true);
+                mTitleLayoutManager.setTitle(R.string.choose_city).setBackgroundColor(R.color.white).setTitleGravity(Gravity.CENTER).setLeftIcon(R.drawable.ic_left_arrow_gray).setLeftListener(this).showLeft(true);
+                adapter = new ParamsAdapter(ParamsActivity.this, recordParamsId, SpUtil.getInstance().getInt(SpUtil.CHOOSECITYPOSITION));
                 break;
         }
 
@@ -83,7 +84,9 @@ public class ParamsActivity extends TitleActivity implements View.OnClickListene
 
                 //把当前选中的位置根据类型保存下来
                 switch (recordParamsId) {
-
+                    case R.string.choose_city:
+                        SpUtil.getInstance().saveInt(SpUtil.CHOOSECITYPOSITION, position);
+                        break;
                 }
                 //把数值传回去
                 setResult(Constant.RESULT_CODE_PARAMS_ACT, new Intent().putExtra("content", adapter.getChooseData()));
@@ -97,7 +100,6 @@ public class ParamsActivity extends TitleActivity implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_title_left:
-                setResult(Constant.RESULT_CODE_PARAMS_ACT, new Intent().putExtra("content", adapter.getChooseData()));
                 finish();
                 break;
             default:

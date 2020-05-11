@@ -5,6 +5,33 @@
     android:layout_height="match_parent"
     android:background="#4E4E4E">
 
+
+    <FrameLayout
+        android:id="@+id/fl"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.videocomm.VideoInterView.view.CameraSurfaceView
+                android:id="@+id/surface_living_reco"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
+
+
+        <com.videocomm.VideoInterView.view.RoundView
+            android:id="@+id/round_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
     <TextView
         android:id="@+id/tv_living_rule"
         android:layout_width="0dp"
@@ -13,30 +40,11 @@
         android:gravity="center"
         android:text="将脸移入取景框内"
         android:textColor="@color/white"
-        android:textSize="16dp"
+        android:textSize="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.videocomm.VideoInterView.view.CameraSurfaceView
-        android:id="@+id/camera_surface_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="40dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_living_rule" />
-
-    <ImageView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="40dp"
-        android:background="@drawable/ic_living_rect"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_living_rule" />
 
     <TextView
         android:id="@+id/tv_living_order"
@@ -50,7 +58,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <com.videocomm.VideoInterView.view.MoreNumberCircle
+    <com.videocomm.VideoInterView.view.NumberCircleProgress
+        android:id="@+id/number_circle_progress"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"

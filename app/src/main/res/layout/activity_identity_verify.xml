@@ -34,30 +34,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ll_progress">
-
+        <!--身份证上传-->
         <include
             android:id="@+id/step_one"
             layout="@layout/identity_step_one_layout"
             android:visibility="visible" />
-
+        <!--身份证信息-->
         <include
             android:id="@+id/step_one_two"
             layout="@layout/identity_step_one_two_layout"
             android:visibility="gone" />
-
+        <!--人脸识别提示-->
         <include
             android:id="@+id/step_two"
             layout="@layout/identity_step_two_layout"
-            android:visibility="gone" />
-
-        <include
-            android:id="@+id/step_two_one"
-            layout="@layout/identity_step_two_one_layout"
-            android:visibility="gone" />
-
-        <include
-            android:id="@+id/step_two_two"
-            layout="@layout/identity_step_two_two_layout"
             android:visibility="gone" />
 
         <include

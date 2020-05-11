@@ -19,11 +19,13 @@ public class SpUtil {
     public static final String SERVERADDR = "server_addr";//服务器地址
     public static final String SERVERPORT = "server_port";//服务器端口
     public static final String USER_MOBILE = "user_mobile";//用户手机号
-    public static final String LIVINGCHECKSTATE = "living_check_state";//活体检测状态 默认关闭
+    public static final String LIVINGCHECKSTATE = "living_check_state";//活体检测状态 默认开启
     public static final String RISKREPORTSTATE = "risk_report_state";//风险播报状态 默认开启
+    public static final String CHOOSECITYPOSITION = "choosecityposition";//风险播报状态 默认开启
 
     public static final String TOKEN = "token";
     public static final String USERPHONE = "userphone";
+    public static final String APPID = "appid";
 
 
     private SpUtil() {
@@ -49,7 +51,7 @@ public class SpUtil {
     }
 
     public void saveInt(String key, int value) {
-        mEdit.putInt(key, value);
+        mEdit.putInt(key, value).apply();
     }
 
     public String getString(String key) {
@@ -68,7 +70,8 @@ public class SpUtil {
         return mSp.getBoolean(key, def);
     }
 
-    private int getInt(String key) {
+
+    public int getInt(String key) {
         return mSp.getInt(key, 0);
     }
 

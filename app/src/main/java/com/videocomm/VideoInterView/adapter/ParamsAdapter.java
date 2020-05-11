@@ -27,7 +27,9 @@ public class ParamsAdapter extends BaseAdapter {
         mCurPosition = curPosition;
         inflater = LayoutInflater.from(mContext);
         switch (recordParamsId) {
-
+            case R.string.choose_city:
+                datas = mContext.getResources().getStringArray(R.array.city_list);
+                break;
         }
     }
 
@@ -69,4 +71,6 @@ public class ParamsAdapter extends BaseAdapter {
         }
         return view;
     }
+
+
 }

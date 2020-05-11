@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/tv_identity_rule"
@@ -19,14 +19,13 @@
 
     <ImageView
         android:id="@+id/iv_idcard_front_one"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_width="300dp"
+        android:layout_height="150dp"
         android:layout_marginStart="40dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="40dp"
-        android:background="@drawable/ic_idcard_front"
         android:onClick="onClick"
-        android:scaleType="fitXY"
+        android:src="@drawable/ic_idcard_front"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_identity_rule" />
@@ -69,14 +68,14 @@
 
     <ImageView
         android:id="@+id/iv_idcard_back_one"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_width="300dp"
+        android:layout_height="150dp"
         android:layout_marginStart="40dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="40dp"
-        android:background="@drawable/ic_idcard_back"
         android:onClick="onClick"
-        android:scaleType="fitXY"
+        android:src="@drawable/ic_idcard_back"
+        app:layout_constraintBottom_toTopOf="@id/btn_recognition_next"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/iv_idcard_front_one" />
@@ -120,9 +119,9 @@
     <Button
         android:id="@+id/btn_recognition_next"
         android:layout_width="0dp"
-        android:layout_height="45dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/bg_btn_rect_red"
         android:onClick="onClick"
         android:text="@string/next"

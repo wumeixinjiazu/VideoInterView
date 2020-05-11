@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.videocomm.VideoInterView.R;
+import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.adapter.BusinessAdapter;
 import com.videocomm.VideoInterView.utils.ToastUtil;
@@ -43,7 +44,12 @@ public class ChooseBusinessActivity extends TitleActivity {
                     ToastUtil.show(getString(R.string.choose_business_least));
                     return;
                 }
-                startActivity(new Intent(ChooseBusinessActivity.this, QueueActivity.class));
+                VideoApplication mVideoApplication = (VideoApplication) getApplication();
+                mVideoApplication.setSelectBussiness(adapter.getSelectBusiness());//保存选择的业务
+                Intent intent = new Intent(ChooseBusinessActivity.this, RecordActivity.class);
+                intent.putExtra("businessType", adapter.getSelectBusiness());
+                startActivity(intent);
+                finish();
                 break;
         }
     }

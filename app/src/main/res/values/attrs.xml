@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="FaceScanView">
+        <attr name="background_color" format="color|reference" />
+        <attr name="border_rect_color" format="color|reference" />
+       <!-- <attr name="border_color" format="color|reference" />-->
+        <attr name="scan_color" format="color|reference" />
+        <attr name="borderStrokeWidth" format="float" />
+        <attr name="scan_bg" format="color|reference"/>
+    </declare-styleable>
+</resources>

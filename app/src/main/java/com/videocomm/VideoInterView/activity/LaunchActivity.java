@@ -18,6 +18,10 @@ public class LaunchActivity extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!isTaskRoot()){
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_launch);
         setTheme(R.style.AppTheme_Launcher);
         new Handler().postDelayed(new Runnable() {
@@ -26,6 +30,6 @@ public class LaunchActivity extends BaseActivity {
                 startActivity(new Intent(LaunchActivity.this, LoginActivity.class));
                 finish();
             }
-        },2000);
+        },0);
     }
 }

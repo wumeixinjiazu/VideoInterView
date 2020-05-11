@@ -2,6 +2,9 @@ package com.videocomm.VideoInterView.utils;
 
 import com.videocomm.VideoInterView.R;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -24,5 +27,55 @@ public class StringUtil {
 
     private static boolean isMatch(String regex, CharSequence input) {
         return input != null && input.length() > 0 && Pattern.matches(regex, input);
+    }
+
+    /**
+     * 日期格式化 yyyyMMddHHmmss
+     */
+    public static String getCurrentFormatTime() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA);
+        Date curDate = new Date(System.currentTimeMillis());
+        return format.format(curDate);
+    }
+
+    public static String getTimeShowStringTwo(int Seconds) {
+
+        String strtime = new String();
+        int hour = Seconds / (60 * 60);
+        int min = (Seconds / 60) % 60;
+        int s = Seconds % 60;
+        String hourStr = (hour >= 10) ? "" + hour : "0" + hour;
+        String minStr = (min >= 10) ? "" + min : "0" + min;
+        String seondStr = (s >= 10) ? "" + s : "0" + s;
+
+        strtime = hourStr + "时" + minStr + "分" + seondStr + "秒";
+        return strtime;
+    }
+
+    public static String getTimeShowString(int seconds) {
+        String strShow = new String();
+        int hour = seconds / (60 * 60);
+        int min = (seconds / 60) % 60;
+        int s = seconds % 60;
+        String hourStr = (hour >= 10) ? "" + hour : "0" + hour;
+        String minStr = (min >= 10) ? "" + min : "0" + min;
+        String seondStr = (s >= 10) ? "" + s : "0" + s;
+        strShow = hourStr + ":" + minStr + ":" + seondStr;
+        return strShow;
+    }
+
+    /**
+     * 替换字符
+     *
+     * @param content
+     * @return
+     */
+    public static String replaceStr(String content) {
+
+        //字符串截取
+        String substring = content.substring(0, content.length() - 1);
+        //字符串替换
+        String result = content.replace(substring, "*");
+        return result;
     }
 }

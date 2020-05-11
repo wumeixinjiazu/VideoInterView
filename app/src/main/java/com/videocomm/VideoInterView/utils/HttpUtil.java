@@ -5,8 +5,6 @@ import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -60,6 +58,13 @@ public class HttpUtil {
     public static final String OCR_SIZE_FACE = "front";
     public static final String OCR_SIZE_BACK = "back";
 
+    /**
+     * 活体检测动作 张嘴 眨眼 摇头
+     */
+    public static final String LIVING_ACTION_MOUTH = "openMouth";
+    public static final String LIVING_ACTION_EYE = "blink";
+    public static final String LIVING_ACTION_HEAD = "shakeHead";
+
     private static final String URL_BASE = "http://interview.videocomm.net";
     //图形验证码接口 GET
     //示例：/captcha/getNumImageCaptcha?code=0.3223
@@ -70,9 +75,13 @@ public class HttpUtil {
     //登陆接口 POST
     //示例：/v1/client/login?phoneNumber=13570125462&imageCaptcha=1252&loginType=0&smsCaptcha=688826
     private static final String REQUEST_LOGIN = URL_BASE + "/v1/client/login";
+    private static final String REQUEST_NETWORK = URL_BASE + "/v1/client/businessOffice/getlistByCity";
+    private static final String REQUEST_FACE_RECO = URL_BASE + "/v1/client/face/detectFace";
+    private static final String REQUEST_LIVING_DETECTION = URL_BASE + "/v1/client/face/livingDetection";
     private static OkHttpClient okHttpClient;
 
     static {
+
     }
 
     /**
@@ -88,7 +97,7 @@ public class HttpUtil {
         RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
         String body2 = "{" +
                 "\t\"token\":  \"" + token + "\",\n" +
-                "\t\"userPhone\":  \"" + userPhone + "\",\n" +
+                "\t\"phoneNumber\":  \"" + userPhone + "\",\n" +
                 "\t\"image\":  \"" + base64ToNoHeaderBase64(bitmapToBase64(bitmap)) + "\",\n" +
                 "}";
         Log.d(tag, OCR_URL_HOST + size + OCR_URL_PATH);
@@ -116,8 +125,8 @@ public class HttpUtil {
         RequestBody requestBody = new MultipartBody.Builder()
                 .addFormDataPart("image", file.getName(),
                         RequestBody.create(MediaType.parse("multipart/form-data"), file))
-                .addFormDataPart("token",token)
-                .addFormDataPart("userPhone",userPhone)
+                .addFormDataPart("token", token)
+                .addFormDataPart("phoneNumber", userPhone)
                 .build();
 
         Log.d(tag, OCR_URL_HOST + size + OCR_URL_PATH);
@@ -157,16 +166,64 @@ public class HttpUtil {
     }
 
     public static void requestLogin(String phoneNumber, String imageCapcha, String smsCaptcha, Callback callback) {
-        FormBody formBody = new FormBody.Builder().add("phoneNumber", phoneNumber).add("imageCapcha", imageCapcha).add("smsCaptcha", smsCaptcha).add("loginType", "0").build();
+        FormBody formBody = new FormBody.Builder()
+                .add("phoneNumber", phoneNumber)
+                .add("imageCapcha", imageCapcha)
+                .add("smsCaptcha", smsCaptcha)
+                .add("appCode","vipVideo")
+                .add("loginType", "0").build();
         requestPost(REQUEST_LOGIN, formBody, callback);
     }
 
-    public static void requestPost(String url, FormBody body, Callback callback) {
+    //请求网点
+    public static void requestNetwork(String city, String userPhone, String pageSize, String offset, Callback callback) {
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        FormBody formBody = new FormBody.Builder().add("city", city).add("phoneNumber", userPhone).add("pageSize", pageSize).add("offset", offset).
+                add("appId", "37245ec9-6ff3-4a0a-bd5b-4ad896be0d61").add("token", token).build();
+        requestPost(REQUEST_NETWORK, formBody, callback);
+    }
+
+    //请求人脸识别
+    public static void requestFaceReco(File file, Callback callback) {
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("image", file.getName(),
+                        RequestBody.create(MediaType.parse("multipart/form-data"), file))
+                .addFormDataPart("token", token)
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("phoneNumber", userPhone)
+                .build();
+        requestPost(REQUEST_FACE_RECO, requestBody, callback);
+    }
+
+    //请求活体检测
+    public static void requestLivingDetection(File file, String action, Callback callback) {
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("image", file.getName(),
+                        RequestBody.create(MediaType.parse("multipart/form-data"), file))
+                .addFormDataPart("token", token)
+                .addFormDataPart("phoneNumber", userPhone)
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("action", action)
+                .build();
+        requestPost(REQUEST_LIVING_DETECTION, requestBody, callback);
+
+    }
+
+    public static void requestPost(String url, RequestBody body, Callback callback) {
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
                 .build();
         OkHttpClient okHttpClient = new OkHttpClient();
+        Log.d(tag, request.url().toString());
         okHttpClient.newCall(request).enqueue(callback);
     }
 
@@ -209,6 +266,5 @@ public class HttpUtil {
         //转换来的base64码需要加前缀，必须是NO_WRAP参数，表示没有空格。
         return "data:image/jpeg;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP);
     }
-
 
 }

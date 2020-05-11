@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">VideoInterView</string>
+    <string name="app_name">AI双录</string>
     <string name="login">登录</string>
     <string name="login_loading">正在登陆</string>
     <string name="login_success">登录成功</string>
     <string name="upload_id_card">正在上传身份证</string>
     <string name="login_fail_retry">登录失败，请重试</string>
-    <string name="welcome">欢迎使用VComm远程面签</string>
-    <string name="inter_pre">面签准备</string>
+    <string name="welcome">VideoComm AI 双录</string>
+    <string name="inter_pre">双录准备</string>
     <string name="indentity_text">身份证需满18岁</string>
     <string name="info_text">相关合同资料</string>
     <string name="wifi_text">WiFi或4G以上</string>
@@ -31,7 +31,7 @@
     <string name="choose_city">选择城市</string>
     <string name="next">下一步</string>
     <string name="network_list">网点列表</string>
-    <string name="identity_rule">根据金融监管机构规定，需要上传有效期内身份证照片；\n该信息仅用于本次远程面签业务，请放心上传；\n请上传原始比例身份证正反面照，拍照时请确保无反光、无遮挡，保持图片清晰度、请勿涂改裁切，保证审核通过率。</string>
+    <string name="identity_rule">根据金融监管机构规定，需要上传有效期内身份证照片；\n该信息仅用于本次双录业务，请放心上传；\n请上传原始比例身份证正反面照，拍照时请确保无反光、无遮挡，保持图片清晰度、请勿涂改裁切，保证审核通过率。</string>
     <string name="identity_check">身份验证</string>
     <string name="please_upload_idcard">请上传身份证</string>
     <string name="send_faild_retry">发送失败，请重试</string>
@@ -40,4 +40,35 @@
     <string name="refresh_fail_retry">刷新失败，请重试</string>
     <string name="queue">排队</string>
     <string name="choose_business_least">请选择一个办理业务</string>
+    <string name="request_fail">获取失败</string>
+    <string name="black_red_black"><Data><![CDATA[<font color="#333333">%1$s</font><big><font color="#f34141">%2$s</font></big><font color="#333333">%3$s</font>]]></Data></string>
+    <string name="blue_red_blue_red"><Data><![CDATA[<font color="#3478F7">%1$s</font><big><font color="#ff0000">%2$s</font></big><font color="#3478F7">%3$s</font><big><font color="#ff0000">%4$s</font></big>]]></Data></string>
+    <string name="black_red"><Data><![CDATA[<font color="#333333">%1$s</font><big><font color="#f34141">%2$s</font></big>]]></Data></string>
+
+    <string name="detect_no_face">未检测到人脸</string>
+    <string name="detect_face_in">把脸移入框内</string>
+    <string name="detect_zoom_in">手机拿近一点</string>
+    <string name="detect_zoom_out">手机拿远一点</string>
+    <string name="detect_head_up">建议略微抬头</string>
+    <string name="detect_head_down">建议略微低头</string>
+    <string name="detect_head_left">建议略微向左转头</string>
+    <string name="detect_head_right">建议略微向右转头</string>
+    <string name="detect_occ_face">脸部有遮挡</string>
+    <string name="detect_low_light">光线再亮些</string>
+    <string name="detect_keep">请保持不动</string>
+    <string name="detect_standard">请正对手机</string>
+    <string name="detect_timeout">检测超时</string>
+    <string name="liveness_eye">眨眨眼</string>
+    <string name="liveness_eye_left">请眨眨左边眼睛</string>
+    <string name="liveness_eye_right">请眨眨右边眼睛</string>
+    <string name="liveness_mouth">张张嘴</string>
+    <string name="liveness_head_left">向左缓慢转头</string>
+    <string name="liveness_head_right">向右缓慢转头</string>
+    <string name="liveness_head_left_right">摇摇头</string>
+    <string name="liveness_head_up">缓慢抬头</string>
+    <string name="liveness_head_down">缓慢低头</string>
+    <string name="liveness_good">非常好</string>
+    <string name="ai_question_one">请问您所提交的申请资料是您本人真实意愿吗？</string>
+    <string name="ai_question_two">请问您是否已经仔细阅读相关文件资料的条款呢？</string>
+    <string name="ai_question_three">请确认是否是您真实意愿申请并完成双录吗?</string>
 </resources>

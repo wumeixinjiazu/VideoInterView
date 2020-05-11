@@ -1,73 +1,51 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
 
-    <TextView
-        android:id="@+id/tv_queue_business"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:text="您正在办理房屋装修贷业务"
-        android:textSize="20dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_queue_number"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="您前面还有排队等待人数"
-        android:textSize="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_queue_business" />
 
     <ImageView
-        android:id="@+id/iv_queue_circle"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/ic_queue_circle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_queue_number" />
+        android:id="@+id/icon_queue"
+        android:layout_width="136dp"
+        android:layout_height="136dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:background="@drawable/queue_icon" />
+
 
     <TextView
-        android:id="@+id/tv_queue_real"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:gravity="center"
-        android:text="1"
-        android:textColor="@color/white"
-        android:textSize="80dp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/iv_queue_circle"
-        app:layout_constraintEnd_toEndOf="@id/iv_queue_circle"
-        app:layout_constraintStart_toStartOf="@id/iv_queue_circle"
-        app:layout_constraintTop_toTopOf="@id/iv_queue_circle" />
-
-    <TextView
-        android:id="@+id/tv_queue_time_text"
-        android:layout_width="0dp"
+        android:id="@+id/queue_show"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="您已排队等待"
-        android:textSize="20dp"
-        app:layout_constraintStart_toStartOf="@id/tv_queue_number"
-        app:layout_constraintTop_toBottomOf="@id/tv_queue_real" />
+        android:layout_below="@+id/icon_queue"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:text="在您前面还有**多少人等待，请耐心等候..."
+        android:textColor="#333333"
+        android:textSize="16sp" />
 
     <TextView
-        android:id="@+id/tv_queue_time"
-        android:layout_width="0dp"
+        android:id="@+id/queue_time"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="02:08"
-        android:textColor="#F34141"
-        android:textSize="25dp"
-        app:layout_constraintBottom_toBottomOf="@id/tv_queue_time_text"
-        app:layout_constraintStart_toEndOf="@id/tv_queue_time_text"
-        app:layout_constraintTop_toTopOf="@id/tv_queue_time_text" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_below="@+id/queue_show"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:text="something show "
+        android:textColor="#333333"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/queue_btn"
+        android:layout_width="192dp"
+        android:layout_height="44dp"
+        android:layout_below="@+id/queue_time"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/btn_bg"
+        android:text="结束排队"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp" />
+
+</RelativeLayout>

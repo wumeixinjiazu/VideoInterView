@@ -1,44 +1,66 @@
 package com.videocomm.VideoInterView.activity;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.videocomm.VideoInterView.Constant;
+import com.baidu.idl.face.platform.FaceConfig;
+import com.baidu.idl.face.platform.FaceEnvironment;
+import com.baidu.idl.face.platform.FaceSDKManager;
+import com.baidu.idl.face.platform.LivenessTypeEnum;
+import com.baidu.idl.face.platform.utils.FileUtils;
+import com.videocomm.VideoInterView.Config;
 import com.videocomm.VideoInterView.R;
+import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.IdCardFrontBean;
 import com.videocomm.VideoInterView.bean.IdCardBackBean;
+import com.videocomm.VideoInterView.bean.IdentityFaceBean;
+import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.dlgfragment.PicChooseFragment;
+import com.videocomm.VideoInterView.fragment.FaceRecoFragment;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
 import com.videocomm.VideoInterView.utils.DialogUtil;
+import com.videocomm.VideoInterView.utils.FileUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
-import com.videocomm.VideoInterView.utils.RealPathFromUriUtils;
+import com.videocomm.VideoInterView.utils.SpUtil;
+import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
 import com.videocomm.VideoInterView.view.ProgressCustom;
-import com.yalantis.ucrop.UCrop;
+import com.videocomm.ai.baidu.ui.FaceLivenessActivity;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
+
+import static com.videocomm.VideoInterView.Constant.FACE_RECO_PIC_PATH;
+import static com.videocomm.VideoInterView.Constant.OPEN_CAMERA;
+import static com.videocomm.VideoInterView.Constant.PHOTO_BACK_PATH;
+import static com.videocomm.VideoInterView.Constant.PHOTO_FRONT_PATH;
+import static com.videocomm.VideoInterView.Constant.PHOTO_REQUEST_CODE;
+import static com.videocomm.VideoInterView.Constant.RESULT_CODE_Identity_ACT;
+import static com.videocomm.VideoInterView.Constant.TAKE_PIC_BACK_PATH;
+import static com.videocomm.VideoInterView.Constant.TAKE_PIC_FRONT_PATH;
 
 /**
  * @author[wengCJ]
@@ -48,22 +70,17 @@ import okhttp3.Response;
 public class IdentityVerifyActivity extends TitleActivity implements View.OnClickListener {
 
     /**
-     * 身份验证显示步骤
-     */
-    private View stepOne;
-    private View stepOneTwo;
-    private View stepTwo;
-
-    /**
      * 身份证正反面显示View
      */
     private ImageView ivFrontIdCard;
     private ImageView ivBackIdCard;
+
     /**
      * 身份证信息Bean
      */
     private IdCardBackBean idCardBackBean;
     private IdCardFrontBean idCardFrontBean;
+    private IdentityFaceBean faceBean;
 
     /**
      * 身份证信息输入框
@@ -77,16 +94,14 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     private EditText etSignOffice;
     private EditText etStartTime;
     private EditText etEndTime;
-    //自定义节点
-    private ProgressCustom progressCustom;
-
 
     /**
-     * 开户步骤
+     * 身份验证显示步骤
      */
-    private View stepTwoOne;
+    private View stepOne;
+    private View stepOneTwo;
+    private View stepTwo;
     private View stepThree;
-    private View stepTwoTwo;
 
     /**
      * 存储由相册获取的前后身份证路径
@@ -95,61 +110,66 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     private String backPicPath = "";
 
     private Dialog mLoadingDialog;//提示框
+    private ProgressCustom progressCustom;//自定义节点
 
-    private static final int HANDLER_OCR_FRONT_SUCCESS = 1001;
+    private Handler mHandler = new IdentityHandler(this);
+    private static final int HANDLER_OCR_FRONT_SUCCESS = 1001;//身份证识别
     private static final int HANDLER_OCR_BACK_SUCCESS = 1002;
     private static final int HANDLER_OCR_FRONT_FAILD = 1003;
     private static final int HANDLER_OCR_BACK_FAILD = 1004;
-    private Handler mHandler = new IdentityHandler(this);
 
-    class IdentityHandler extends Handler {
+    private TextView tvFaceName;
+    private boolean flag = true;//记录是不是身份证正面
+    private VideoApplication mApplication;
+    private ImageView ivIdentityState;
+    private TextView tvIdentityState;
+    private FaceRecoFragment faceRecoFragment;
 
-        private final IdentityVerifyActivity identityVerifyActivity;
+    static class IdentityHandler extends Handler {
 
-        public IdentityHandler(IdentityVerifyActivity identityVerifyActivity) {
-            this.identityVerifyActivity = identityVerifyActivity;
+        private final IdentityVerifyActivity activity;
+
+        IdentityHandler(IdentityVerifyActivity identityVerifyActivity) {
+            this.activity = identityVerifyActivity;
         }
 
         @Override
         public void handleMessage(@NonNull Message msg) {
             String content = (String) msg.obj;
-            if (content == null) {
-                return;
-            }
+
             switch (msg.what) {
                 case HANDLER_OCR_FRONT_SUCCESS://OCR识别正面成功
-                    if (!content.equalsIgnoreCase("正面身份证上传成功")) {
-                        ToastUtil.show("识别失败");
-                        mLoadingDialog.dismiss();
+                    if (!content.contains("正面身份证上传成功")) {
+                        sendEmptyMessage(HANDLER_OCR_FRONT_FAILD);
                         return;
                     }
-                    idCardFrontBean = JsonUtil.jsonToBean(content, IdCardFrontBean.class);
-                    if (idCardFrontBean != null && idCardFrontBean.getMsg().equalsIgnoreCase("正面身份证上传成功")) {
-                        readBack();
+                    activity.idCardFrontBean = JsonUtil.jsonToBean(content, IdCardFrontBean.class);
+                    if (activity.idCardFrontBean != null && activity.idCardFrontBean.getMsg().contains("正面身份证上传成功")) {
+                        activity.readBack();
                     } else {
                         ToastUtil.show("识别失败");
+                        sendEmptyMessage(HANDLER_OCR_FRONT_FAILD);
                     }
                     break;
                 case HANDLER_OCR_BACK_SUCCESS://OCR识别反面成功
-                    if (!content.equalsIgnoreCase("反面身份证上传成功")) {
-                        ToastUtil.show("识别失败");
+                    if (!content.contains("反面身份证上传成功")) {
+                        sendEmptyMessage(HANDLER_OCR_BACK_FAILD);
                         return;
                     }
-                    idCardBackBean = JsonUtil.jsonToBean(content, IdCardBackBean.class);
-                    if (idCardBackBean != null && idCardBackBean.getMsg().equalsIgnoreCase("反面身份证上传成功")) {
-                        refreshData(HttpUtil.OCR_SIZE_BACK);
+                    activity.idCardBackBean = JsonUtil.jsonToBean(content, IdCardBackBean.class);
+                    if (activity.idCardBackBean != null && activity.idCardBackBean.getMsg().contains("反面身份证上传成功")) {
+                        activity.refreshData();
+                        activity.mLoadingDialog.dismiss();
                     } else {
-                        ToastUtil.show("识别失败");
+                        sendEmptyMessage(HANDLER_OCR_BACK_FAILD);
                     }
-                    mLoadingDialog.dismiss();
                     break;
                 case HANDLER_OCR_FRONT_FAILD:
-                    ToastUtil.show("识别失败");
-                    mLoadingDialog.dismiss();
-                    break;
                 case HANDLER_OCR_BACK_FAILD:
                     ToastUtil.show("识别失败");
-                    mLoadingDialog.dismiss();
+                    activity.mLoadingDialog.dismiss();
+                    break;
+                default:
                     break;
             }
         }
@@ -159,6 +179,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_identity_verify);
+        mApplication = (VideoApplication) getApplication();
         mTitleLayoutManager.setTitle(R.string.identity_check);
         initView();
         initProgress();
@@ -182,17 +203,23 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         progressCustom.setSelectIndex(0);//设置选择节点
     }
 
-
     /**
      *
      */
     private void initView() {
+
         /**
          *  step One
          */
         stepOne = findViewById(R.id.step_one);
         ivFrontIdCard = findViewById(R.id.iv_idcard_front_one);
         ivBackIdCard = findViewById(R.id.iv_idcard_back_one);
+
+        findViewById(R.id.iv_idcard_front_two);
+        findViewById(R.id.iv_idcard_front_three);
+
+        findViewById(R.id.iv_idcard_back_two);
+        findViewById(R.id.iv_idcard_back_three);
 
         /**
          *  step One_Two
@@ -212,18 +239,14 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
          *  step Two
          */
         stepTwo = findViewById(R.id.step_two);
-        /**
-         *  step Two-One
-         */
-        stepTwoOne = findViewById(R.id.step_two_one);
-        /**
-         *  step Two-One
-         */
-        stepTwoTwo = findViewById(R.id.step_two_two);
+        tvFaceName = findViewById(R.id.tv_face_name);
+
         /**
          *  step Three
          */
         stepThree = findViewById(R.id.step_three);
+        ivIdentityState = findViewById(R.id.iv_identity_state);
+        tvIdentityState = findViewById(R.id.tv_identity_state);
 
     }
 
@@ -232,34 +255,114 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         switch (v.getId()) {
             case R.id.btn_recognition_next://识别身份证
                 readFront();
-//                stepOne.setVisibility(View.GONE);
 //                stepOneTwo.setVisibility(View.VISIBLE);
+//                stepOne.setVisibility(View.GONE);
                 break;
             case R.id.btn_info_next://下一步
-                progressCustom.setSelectIndex(1);
-                stepOneTwo.setVisibility(View.INVISIBLE);
-                stepTwo.setVisibility(View.VISIBLE);
+                checkData();
                 break;
-            case R.id.btn_success_next:
-//                stepThree.setVisibility(View.GONE);
-//                stepTwoTwo.setVisibility(View.VISIBLE);
+            case R.id.btn_success_next://身份验证成功
                 startActivity(new Intent(IdentityVerifyActivity.this, ChooseBusinessActivity.class));
+                finish();
                 break;
             case R.id.iv_idcard_front_one:
             case R.id.iv_idcard_front_two:
             case R.id.iv_idcard_front_three:
-                new PicChooseFragment(Constant.FRONT_VIEW).show(getSupportFragmentManager(), "PicChooseFragment");
+                flag = true;
+                PicChooseFragment.newInstance(flag).show(getSupportFragmentManager(), "front");
                 break;
             case R.id.iv_idcard_back_one:
             case R.id.iv_idcard_back_two:
             case R.id.iv_idcard_back_three:
-                new PicChooseFragment(Constant.BACK_VIEW).show(getSupportFragmentManager(), "PicChooseFragment");
+                flag = false;
+                PicChooseFragment.newInstance(flag).show(getSupportFragmentManager(), "back");
                 break;
-            case R.id.btn_start_recognition:
-                stepThree.setVisibility(View.VISIBLE);
-                stepTwo.setVisibility(View.INVISIBLE);
+            case R.id.btn_start_recognition://开始人脸识别
+                stepTwo.setVisibility(View.GONE);
+                //后期开发
+                faceRecoFragment = new FaceRecoFragment(mApplication);
+                getSupportFragmentManager().beginTransaction().add(R.id.content, faceRecoFragment).show(faceRecoFragment).commit();
+                break;
+            default:
                 break;
         }
+    }
+
+    /**
+     * 检查数据
+     */
+    private void checkData() {
+        if (TextUtils.isEmpty(etName.getText().toString()) ||
+                TextUtils.isEmpty(etIdcard.getText().toString()) ||
+                TextUtils.isEmpty(etSex.getText().toString()) ||
+                TextUtils.isEmpty(etBirth.getText().toString()) ||
+                TextUtils.isEmpty(etNation.getText().toString()) ||
+                TextUtils.isEmpty(etAddress.getText().toString()) ||
+                TextUtils.isEmpty(etSignOffice.getText().toString()) ||
+                TextUtils.isEmpty(etStartTime.getText().toString()) ||
+                TextUtils.isEmpty(etEndTime.getText().toString())) {
+            ToastUtil.show("信息不能为空！");
+        } else {
+            //正确
+            mApplication.setUserName(etName.getText().toString());
+            progressCustom.setSelectIndex(1);
+            stepTwo.setVisibility(View.VISIBLE);
+            tvFaceName.setText("请确保是" + StringUtil.replaceStr(mApplication.getUserName()) + "本人操作");
+            stepOneTwo.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * 下一步 根据活体检测是否打开
+     */
+    public void next() {
+        getSupportFragmentManager().beginTransaction().remove(faceRecoFragment).commit();
+
+        boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
+        if (livingState) {
+            //开始活体检测
+            initAI();
+            startActivityForResult(new Intent(this, FaceLivenessActivity.class), RESULT_CODE_Identity_ACT);
+        } else {
+            //验证成功
+            stepThree.setVisibility(View.VISIBLE);
+            progressCustom.setSelectIndex(2);
+        }
+        saveData();
+    }
+
+    /**
+     * 初始化AI
+     */
+    private void initAI() {
+        boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
+        if (!livingState) {
+            return;
+        }
+        FaceSDKManager.getInstance().initialize(this, Config.licenseID, Config.licenseFileName);
+        FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
+        List<LivenessTypeEnum> actionList = new ArrayList<>();
+        actionList.add(LivenessTypeEnum.Eye);
+        actionList.add(LivenessTypeEnum.Mouth);
+        actionList.add(LivenessTypeEnum.HeadDown);
+        config.setLivenessTypeList(actionList);
+
+        config.setLivenessRandom(false);
+        config.setBlurnessValue(FaceEnvironment.VALUE_BLURNESS);
+        config.setBrightnessValue(FaceEnvironment.VALUE_BRIGHTNESS);
+        config.setCropFaceValue(FaceEnvironment.VALUE_CROP_FACE_SIZE);
+        config.setHeadPitchValue(FaceEnvironment.VALUE_HEAD_PITCH);
+        config.setHeadRollValue(FaceEnvironment.VALUE_HEAD_ROLL);
+        config.setHeadYawValue(FaceEnvironment.VALUE_HEAD_YAW);
+        config.setMinFaceSize(FaceEnvironment.VALUE_MIN_FACE_SIZE);
+        config.setNotFaceValue(FaceEnvironment.VALUE_NOT_FACE_THRESHOLD);
+        config.setOcclusionValue(FaceEnvironment.VALUE_OCCLUSION);
+
+        config.setCheckFaceQuality(true);
+        config.setFaceDecodeNumberOfThreads(2);
+        config.setSound(true);
+
+        FaceSDKManager.getInstance().setFaceConfig(config);
     }
 
     /**
@@ -272,14 +375,19 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         }
         Log.d(tag, frontPicPath);
         Log.d(tag, backPicPath);
-
+        File file = new File(frontPicPath);
+        if (!file.exists()) {
+            return;
+        }
         mLoadingDialog = DialogUtil.createLoadingDialog(this, getString(R.string.upload_id_card));
 
         //先识别正面
-        HttpUtil.requestOcrPost(HttpUtil.OCR_SIZE_FACE, new File(BitmapUtil.compressImage(frontPicPath)), new Callback() {
+        HttpUtil.requestOcrPost(HttpUtil.OCR_SIZE_FACE, file, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                mHandler.sendEmptyMessage(HANDLER_OCR_FRONT_FAILD);
+                if (mHandler != null) {
+                    mHandler.sendEmptyMessage(HANDLER_OCR_FRONT_FAILD);
+                }
             }
 
             @Override
@@ -290,9 +398,9 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
                 Message obtain = Message.obtain();
                 obtain.what = HANDLER_OCR_FRONT_SUCCESS;
                 obtain.obj = content;
-                mHandler.sendMessage(obtain);
-
-
+                if (mHandler != null) {
+                    mHandler.sendMessage(obtain);
+                }
             }
         });
     }
@@ -301,8 +409,12 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
      * 读取身份证背面
      */
     private void readBack() {
+        File file = new File(backPicPath);
+        if (!file.exists()) {
+            return;
+        }
         //识别背面
-        HttpUtil.requestOcrPost(HttpUtil.OCR_SIZE_BACK, new File(BitmapUtil.compressImage(backPicPath)), new Callback() {
+        HttpUtil.requestOcrPost(HttpUtil.OCR_SIZE_BACK, file, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 mHandler.sendEmptyMessage(HANDLER_OCR_BACK_FAILD);
@@ -323,47 +435,93 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     /**
      * 刷新数据 对用户身份证信息列表进行填充
      */
-    private void refreshData(final String type) {
-        new Handler(getMainLooper()).post(new Runnable() {
+    private void refreshData() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                switch (type) {
-                    case HttpUtil.OCR_SIZE_FACE://身份证正面
-                        //隐藏第一步 显示第二步
-                        stepOne.setVisibility(View.GONE);
-                        stepOneTwo.setVisibility(View.VISIBLE);
-                        etName.setText(idCardFrontBean.getContent().getName());
-                        etIdcard.setText(idCardFrontBean.getContent().getIdCardNo());
-                        etSex.setText(idCardFrontBean.getContent().getSex());
-                        etBirth.setText(idCardFrontBean.getContent().getBirth());
-                        etNation.setText(idCardFrontBean.getContent().getNation());
-                        etAddress.setText(idCardFrontBean.getContent().getAddress());
-                        break;
-                    case HttpUtil.OCR_SIZE_BACK://身份证反面
-                        etSignOffice.setText(idCardBackBean.getContent().getIssueOrganiz());
-                        etStartTime.setText(idCardBackBean.getContent().getIssueDate());
-                        etEndTime.setText(idCardBackBean.getContent().getExpiryDate());
-                        break;
-                }
+                //隐藏第一步 显示第二步
+                stepOne.setVisibility(View.GONE);
+                stepOneTwo.setVisibility(View.VISIBLE);
+                //获取数据列表
+                IdCardFrontBean.ContentBean frontBeanContent = idCardFrontBean.getContent();
+                IdCardBackBean.ContentBean backBeanContent = idCardBackBean.getContent();
+                //设置数据
+                etName.setText(frontBeanContent.getName());
+                etIdcard.setText(frontBeanContent.getIdCardNo());
+                etSex.setText(frontBeanContent.getSex());
+                etBirth.setText(frontBeanContent.getBirth());
+                etNation.setText(frontBeanContent.getNation());
+                etAddress.setText(frontBeanContent.getAddress());
+                etSignOffice.setText(backBeanContent.getIssueOrganiz());
+                etStartTime.setText(backBeanContent.getIssueDate());
+                etEndTime.setText(backBeanContent.getExpiryDate());
+
             }
         });
     }
 
+    /**
+     * 保存数据
+     */
+    private void saveData() {
+        if (idCardBackBean == null || idCardFrontBean == null || faceBean == null) {
+            return;
+        }
+        //获取数据
+        IdCardFrontBean.ContentBean frontBeanContent = idCardFrontBean.getContent();
+        IdCardBackBean.ContentBean backBeanContent = idCardBackBean.getContent();
+        IdentityFaceBean.ContentBean faceBeanContent = faceBean.getContent();
+        //保存数据
+
+        mApplication.setIdcardNum(etIdcard.getText().toString());
+        mApplication.setUserName(etName.getText().toString());
+        if (etSex.getText().toString().contains("男")) {
+            mApplication.setUserSex(0);
+        } else {
+            mApplication.setUserSex(1);
+        }
+        mApplication.setIdcardAddress(etAddress.getText().toString());
+        mApplication.setIdcardBirth(etBirth.getText().toString());
+        mApplication.setIdcardVaildTime(etStartTime.getText().toString());
+        mApplication.setIdcardInvaildTime(etEndTime.getText().toString());
+        mApplication.setIdcardSignOrganization(etSignOffice.getText().toString());
+        mApplication.setIdcardNation(etNation.getText().toString());
+
+        List<TradeInfo.PicListBean> picList = new ArrayList<>();
+        TradeInfo.PicListBean picListBean = new TradeInfo.PicListBean();
+        picListBean.setPic(frontBeanContent.getFrontIdCardUrl());
+        picListBean.setType(15);
+        TradeInfo.PicListBean picListBean1 = new TradeInfo.PicListBean();
+        picListBean.setPic(backBeanContent.getBackIdCardUrl());
+        picListBean.setType(16);
+        TradeInfo.PicListBean picListBean2 = new TradeInfo.PicListBean();
+        picListBean.setPic(faceBeanContent.getFaceImageUrl());
+        picListBean.setType(17);
+        picList.add(picListBean);
+        picList.add(picListBean1);
+        picList.add(picListBean2);
+        mApplication.setPicList(picList);
+
+    }
+
     @Override
     public void onBackPressed() {
-        if (stepOne.isShown()) {
-            finish();
-        } else if (stepOneTwo.isShown()) {
-            stepOneTwo.setVisibility(View.INVISIBLE);
-            stepOne.setVisibility(View.VISIBLE);
-        } else if (stepTwo.isShown()) {
-            stepTwo.setVisibility(View.INVISIBLE);
-            stepOneTwo.setVisibility(View.VISIBLE);
-            progressCustom.setSelectIndex(0);
-        } else if (stepTwoOne.isShown()) {
-            stepTwoOne.setVisibility(View.GONE);
-            stepTwo.setVisibility(View.VISIBLE);
-        }
+        //以下仅测试调用
+//        if (stepOne.isShown()) {
+//            finish();
+//        } else if (stepOneTwo.isShown()) {
+//            stepOneTwo.setVisibility(View.INVISIBLE);
+//            stepOne.setVisibility(View.VISIBLE);
+//        } else if (stepTwo.isShown()) {
+//            stepTwo.setVisibility(View.INVISIBLE);
+//            stepOneTwo.setVisibility(View.VISIBLE);
+//            progressCustom.setSelectIndex(0);
+//        } else if (stepTwoOne.isShown()) {
+//            stepTwoOne.setVisibility(View.GONE);
+//            surfaceFaceReco.closeCamera();
+//            stepTwo.setVisibility(View.VISIBLE);
+//        }
+        super.onBackPressed();
     }
 
     @Override
@@ -371,68 +529,153 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(tag, "requestCode" + requestCode);
         switch (requestCode) {
-            case UCrop.RESULT_ERROR:
-                final Throwable cropError = UCrop.getError(data);
-                ToastUtil.show(cropError.getLocalizedMessage());
-                Log.d(tag, cropError.getMessage());
+//            case UCrop.RESULT_ERROR:
+//                final Throwable cropError = UCrop.getError(data);
+//                ToastUtil.show(cropError.getLocalizedMessage());
+//                Log.d(tag, cropError.getMessage());
+//                break;
+//            case Constant.FRONT_VIEW_BY_PHOTO://裁剪之后的正面图片
+//                if (data == null) {
+//                    return;
+//                }
+//                final Uri resultUri = UCrop.getOutput(data);
+//                try {
+//                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(resultUri));
+//                    ivFrontIdCard.setImageBitmap(bitmap);
+//                    //存储图片地址
+//                    frontPicPath = RealPathFromUriUtils.getRealPathFromUri(this, resultUri);
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+//                break;
+//            case Constant.BACK_VIEW_BY_PHOTO://裁剪之后的背面图片
+//                if (data == null) {
+//                    return;
+//                }
+//                final Uri resultUri1 = UCrop.getOutput(data);
+//                try {
+//                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(resultUri1));
+//                    ivBackIdCard.setImageBitmap(bitmap);
+//                    //存储图片地址
+//                    backPicPath = RealPathFromUriUtils.getRealPathFromUri(this, resultUri1);
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+//                break;
+            case RESULT_CODE_Identity_ACT://活体检测结果返回
+                if (data == null) {
+                    return;
+                }
+                boolean isSuccess = data.getBooleanExtra("isSuccess", false);
+                stepThree.setVisibility(View.VISIBLE);
+                progressCustom.setSelectIndex(2);
+                if (isSuccess) {
+                    //验证成功
+                    ivIdentityState.setBackgroundResource(R.drawable.ic_result_true);
+                    tvIdentityState.setText("活体检测成功");
+                } else {
+                    //活体失败
+                    ivIdentityState.setBackgroundResource(R.drawable.ic_result_false);
+                    tvIdentityState.setText("活体检测失败");
+                    finish();
+                }
                 break;
-            case Constant.FRONT_VIEW_BY_CAMERA:
+            case OPEN_CAMERA://拍照返回
                 if (resultCode == RESULT_OK) {
                     if (data == null) {
                         return;
                     }
-                    Bitmap bitmap = data.getParcelableExtra("bitmap");
-                    BitmapUtil.saveBitmap2file(bitmap);
-                    ivFrontIdCard.setImageBitmap(bitmap);
-                    //保存相片的地址
-                    frontPicPath = BitmapUtil.cameraPicPath;
+                    imgShowTake(data);
+
                 } else {
                     ToastUtil.show("取消");
                 }
                 break;
-            case Constant.BACK_VIEW_BY_CAMERA:
-                if (resultCode == RESULT_OK) {
-                    if (data == null) {
-                        return;
+            case PHOTO_REQUEST_CODE://打开系统相册回调
+                if (resultCode == Activity.RESULT_OK) {
+                    if (null != data.getData()) {
+
+                        Uri uri = data.getData();
+
+                        //设置图片显示
+                        imgShow(uri);
+
+                        //图片裁剪
+//                        destinationUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory(), "croppedImage" + this.requestCode + ".jpg"));
+//                        UCrop.of(uri, destinationUri)
+//                                .withAspectRatio(16, 9)
+//                                .withMaxResultSize(400, 300)
+//                                .start(this, this.requestCode + Constant.OPEN_PHOTO);
+                    } else {
+                        ToastUtil.show("图片损坏，请重新选择");
                     }
-                    Bitmap bitmap = data.getParcelableExtra("bitmap");
-                    BitmapUtil.saveBitmap2file(bitmap);
-                    ivBackIdCard.setImageBitmap(bitmap);
-                    //保存相片的地址
-                    backPicPath = BitmapUtil.cameraPicPath;
-                } else {
-                    ToastUtil.show("取消");
                 }
                 break;
-            case Constant.FRONT_VIEW_BY_PHOTO:
-                if (data == null) {
-                    return;
-                }
-                final Uri resultUri = UCrop.getOutput(data);
-                try {
-                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(resultUri));
-                    ivFrontIdCard.setImageBitmap(bitmap);
-                    //存储图片地址
-                    frontPicPath = RealPathFromUriUtils.getRealPathFromUri(this, resultUri);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case Constant.BACK_VIEW_BY_PHOTO:
-                if (data == null) {
-                    return;
-                }
-                final Uri resultUri1 = UCrop.getOutput(data);
-                try {
-                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(resultUri1));
-                    ivBackIdCard.setImageBitmap(bitmap);
-                    //存储图片地址
-                    backPicPath = RealPathFromUriUtils.getRealPathFromUri(this, resultUri1);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+            default:
                 break;
         }
+    }
+
+    /**
+     * 展示拍照的照片
+     *
+     * @param data
+     */
+    private void imgShowTake(Intent data) {
+        if (flag) {
+            Bitmap bitmap = data.getParcelableExtra("bitmap");
+            BitmapUtil.saveBitmap2file(bitmap, TAKE_PIC_FRONT_PATH);
+            ivFrontIdCard.setImageBitmap(bitmap);
+            //保存相片的地址
+            frontPicPath = BitmapUtil.getPath(TAKE_PIC_FRONT_PATH);
+        } else {
+            Bitmap bitmap = data.getParcelableExtra("bitmap");
+            BitmapUtil.saveBitmap2file(bitmap, TAKE_PIC_BACK_PATH);
+            ivBackIdCard.setImageBitmap(bitmap);
+            //保存相片的地址
+            backPicPath = BitmapUtil.getPath(TAKE_PIC_BACK_PATH);
+        }
+    }
+
+    /**
+     * 图片展示
+     *
+     * @param uri
+     */
+    private void imgShow(Uri uri) {
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapUtil.getBitmapFormUri(this, uri);
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            Log.d(tag, width + "");
+            Log.d(tag, height + "");
+            if (bitmap == null) {
+                return;
+            }
+            if (flag) {
+                //正面
+                //保存图片到本地
+                BitmapUtil.saveBitmap2file(bitmap, PHOTO_FRONT_PATH);
+                //存储图片地址
+                frontPicPath = BitmapUtil.getPath(PHOTO_FRONT_PATH);
+                ivFrontIdCard.setImageBitmap(bitmap);
+            } else {
+                //反面
+                //保存图片到本地
+                BitmapUtil.saveBitmap2file(bitmap, PHOTO_BACK_PATH);
+                //存储图片地址
+                backPicPath = BitmapUtil.getPath(PHOTO_BACK_PATH);
+                ivBackIdCard.setImageBitmap(bitmap);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
@@ -440,5 +683,49 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         super.onDestroy();
         mHandler.removeCallbacksAndMessages(null);
         mHandler = null;
+        deletePic();
+    }
+
+    /**
+     * 删除图片(删除之前 上传身份证的图片或者拍照压缩的图片)
+     */
+    private void deletePic() {
+        FileUtil.deleteFile(BitmapUtil.getPath(PHOTO_FRONT_PATH));
+        FileUtil.deleteFile(BitmapUtil.getPath(PHOTO_BACK_PATH));
+        FileUtil.deleteFile(BitmapUtil.getPath(TAKE_PIC_FRONT_PATH));
+        FileUtil.deleteFile(BitmapUtil.getPath(TAKE_PIC_BACK_PATH));
+        FileUtil.deleteFile(BitmapUtil.getPath(FACE_RECO_PIC_PATH));
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        Log.d(tag, "onSaveInstanceState");
+        //保存数据 提供给activity意外销毁时恢复数据
+        outState.putBoolean("flag", flag);
+        outState.putString("front", frontPicPath);
+        outState.putString("back", backPicPath);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d(tag, "onRestoreInstanceState");
+        //恢复由于activity意外销毁的数据
+        flag = savedInstanceState.getBoolean("flag");
+        frontPicPath = savedInstanceState.getString("front");
+        backPicPath = savedInstanceState.getString("back");
+        Log.d(tag, "frontPicPath" + frontPicPath);
+        Log.d(tag, "backPicPath" + frontPicPath);
+
+        if (frontPicPath.length() > 0) {
+            Bitmap frontBitmap = BitmapUtil.getBitmapFromFile(frontPicPath);
+            ivFrontIdCard.setImageBitmap(frontBitmap);
+        }
+
+        if (backPicPath.length() > 0) {
+            Bitmap backBitmap = BitmapUtil.getBitmapFromFile(backPicPath);
+            ivBackIdCard.setImageBitmap(backBitmap);
+        }
     }
 }

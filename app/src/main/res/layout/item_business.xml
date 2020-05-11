@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="10dp">
@@ -22,7 +23,20 @@
             android:layout_margin="30dp"
             android:background="@drawable/ic_business_car"
             android:padding="20dp" />
+
     </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_business_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:gravity="center_horizontal"
+        android:text="汽车消费办理业务"
+        android:textSize="15dp"
+        app:layout_constraintBottom_toBottomOf="@id/rl_item"
+        app:layout_constraintEnd_toEndOf="@id/rl_item"
+        app:layout_constraintStart_toStartOf="@id/rl_item" />
 
     <ImageView
         android:id="@+id/iv_business_mask"
@@ -42,8 +56,8 @@
         android:layout_height="30dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
-        android:visibility="gone"
         android:background="@drawable/ic_red_choose"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@id/rl_item"
         app:layout_constraintTop_toTopOf="@id/rl_item" />
 

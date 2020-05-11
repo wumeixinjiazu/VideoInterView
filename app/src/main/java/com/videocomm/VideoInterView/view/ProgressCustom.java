@@ -202,6 +202,9 @@ public class ProgressCustom extends View {
      * @param selectIndex
      */
     public void setSelectIndex(int selectIndex) {
+        if (selectIndex > nodeList.size()) {
+            return;
+        }
         this.selectIndex = selectIndex;
         invalidate();
     }
@@ -237,7 +240,6 @@ public class ProgressCustom extends View {
         super.onDraw(canvas);
         Log.d(tag, "onDraw" + getWidth());
         Log.d(tag, "onDraw" + getHeight());
-        Log.d(tag, "onDraw" + DisplayUtil.dp2px(20));
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }

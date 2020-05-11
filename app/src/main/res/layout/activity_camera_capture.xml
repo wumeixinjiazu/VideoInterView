@@ -5,12 +5,12 @@
     android:layout_height="match_parent">
 
 
-    <com.videocomm.VideoInterView.view.CameraSurfaceView
+    <SurfaceView
         android:id="@+id/surface_camera"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="h,1:1.5"
+        app:layout_constraintDimensionRatio="h,1:1.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -18,21 +18,22 @@
         android:id="@+id/iv_camera_rect"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:rotation="-90"
         android:background="@drawable/ic_camera_rect"
+        android:rotation="-90"
         android:scaleType="fitXY"
-        app:layout_constraintStart_toStartOf="@id/surface_camera"
-        app:layout_constraintDimensionRatio="w,1:1.5"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="w,1:1.5"
         app:layout_constraintEnd_toEndOf="@id/surface_camera"
+        app:layout_constraintStart_toStartOf="@id/surface_camera"
         app:layout_constraintTop_toTopOf="parent" />
 
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="请将方框对准身份证正面图像拍摄、并确保字迹清晰"
         android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="请将方框对准身份证正面图像拍摄、并确保字迹清晰"
         android:textColor="@color/white"
         android:textSize="15dp"
         app:layout_constraintEnd_toEndOf="@id/surface_camera"

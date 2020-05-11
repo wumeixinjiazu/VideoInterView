@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/record_result_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <FrameLayout
+        android:id="@+id/rl_videoview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintDimensionRatio="h,1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <VideoView
+            android:id="@+id/videoview"
+            android:layout_width="match_parent"
+            android:layout_height="250dp" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/rl_videoview"
+        app:layout_constraintEnd_toEndOf="@id/rl_videoview"
+        app:layout_constraintStart_toStartOf="@id/rl_videoview"
+        app:layout_constraintTop_toTopOf="@id/rl_videoview">
+
+        <ImageView
+            android:id="@+id/iv_first_frame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/iv_play"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:src="@drawable/play" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_faild_reason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:background="@drawable/bg_gray_rect_soild"
+        android:padding="20dp"
+        android:text="您的双录未通过审核\n• 回答问题时，声音不清晰无法识别；\n• 双录时，视频中没有或出现多人人像；\n• 双录时，视频模糊不能识别\n您可以重新进行双录或转人工客服进行双录"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rl_videoview" />
+
+    <TextView
+        android:id="@+id/tv_success_reason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:background="@drawable/bg_gray_rect_soild"
+        android:lineSpacingExtra="10dp"
+        android:paddingStart="40dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="40dp"
+        android:paddingBottom="20dp"
+        android:text="您的双录已通过审核\n• 接下来可以提交双录视频\n• 如对录制的视频效果不满意，也可以\n重新进行录制"
+        android:textSize="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rl_videoview" />
+
+    <Button
+        android:id="@+id/btn_record_again"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/bg_btn_rect_red"
+        android:text="重新录制"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="h,1:3"
+        app:layout_constraintEnd_toStartOf="@id/btn_start_queue"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_start_queue"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/bg_btn_rect_red"
+        android:text="转人工客服"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="h,1:3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_record_again" />
+</androidx.constraintlayout.widget.ConstraintLayout>

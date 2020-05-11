@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +28,13 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
 
     public int getSelectIndex() {
         return selectIndex;
+    }
+
+    public String getSelectBusiness() {
+        if (selectIndex == -1) {
+            return "";
+        }
+        return data.get(selectIndex);
     }
 
     public void setSelectIndex(int selectIndex) {
@@ -51,6 +59,7 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         holder.ivBusiness.setBackgroundResource(ids[position]);
+        holder.tvName.setText(data.get(position));
         if (position == selectIndex) {
             holder.ivMask.setVisibility(View.VISIBLE);
             holder.ivChoose.setVisibility(View.VISIBLE);
@@ -67,9 +76,11 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
 
     class Holder extends RecyclerView.ViewHolder {
 
-        public ImageView ivBusiness;
+
+        private ImageView ivBusiness;
         private final ImageView ivMask;
         private final ImageView ivChoose;
+        private final TextView tvName;
 
         public Holder(@NonNull View itemView, final BusinessAdapter businessAdapter) {
             super(itemView);
@@ -77,6 +88,7 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
             RelativeLayout rlItem = itemView.findViewById(R.id.rl_item);
             ivMask = itemView.findViewById(R.id.iv_business_mask);
             ivChoose = itemView.findViewById(R.id.iv_business_choose);
+            tvName = itemView.findViewById(R.id.tv_business_name);
             rlItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -7,9 +7,10 @@ package com.videocomm.VideoInterView.bean;
  **/
 public class LoginBean {
 
+
     /**
      * msg : 登录成功
-     * content : {"token":"801e58bb-ac69-415e-a920-c8cec9f044d9","userPhone":"13570125462"}
+     * content : {"appId":"","phoneNumber":"13570125462","token":"d3649810-9ee7-4915-bc7e-10fe7d57b781"}
      * errorcode : 0
      */
 
@@ -43,12 +44,30 @@ public class LoginBean {
 
     public static class ContentBean {
         /**
-         * token : 801e58bb-ac69-415e-a920-c8cec9f044d9
-         * userPhone : 13570125462
+         * appId :
+         * phoneNumber : 13570125462
+         * token : d3649810-9ee7-4915-bc7e-10fe7d57b781
          */
 
+        private String appId;
+        private String phoneNumber;
         private String token;
-        private String userPhone;
+
+        public String getAppId() {
+            return appId;
+        }
+
+        public void setAppId(String appId) {
+            this.appId = appId;
+        }
+
+        public String getPhoneNumber() {
+            return phoneNumber;
+        }
+
+        public void setPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+        }
 
         public String getToken() {
             return token;
@@ -56,14 +75,6 @@ public class LoginBean {
 
         public void setToken(String token) {
             this.token = token;
-        }
-
-        public String getUserPhone() {
-            return userPhone;
-        }
-
-        public void setUserPhone(String userPhone) {
-            this.userPhone = userPhone;
         }
     }
 }

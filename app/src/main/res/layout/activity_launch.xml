@@ -5,10 +5,10 @@
     android:layout_height="match_parent">
 
 
-    <ImageView
-        android:background="@drawable/ic_launch"
-        android:scaleType="centerCrop"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+<!--    <ImageView-->
+<!--        android:background="@drawable/ic_launch"-->
+<!--        android:scaleType="centerCrop"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        />-->
 </androidx.constraintlayout.widget.ConstraintLayout>

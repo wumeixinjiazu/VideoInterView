@@ -1,2 +1,3 @@
 rootProject.name='VideoInterView'
 include ':app'
+include ':faceplatform'

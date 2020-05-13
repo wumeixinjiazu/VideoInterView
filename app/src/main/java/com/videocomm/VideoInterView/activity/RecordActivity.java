@@ -78,6 +78,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     private static final int HANDLER_RECORDING = 1000;
     private String ASRUuid;//asr 唯一识别码
     private String TTSUuid;//tts唯一识别码
+    private boolean isSelfExit = false;//记录是否自己退出
 
     private static final int ASK_STATE_ONE = 1;
     private static final int ASK_STATE_TWO = 2;
@@ -226,6 +227,9 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     public void OnRecordResult(String lpUserCode, int iRecordId, int iErrorCode, String lpFileName, int iFileLength, int iDuration, String lpMD5, String lpBusinessParam) {
         Log.i(tag, "OnRecordResult--iRecordId:" + iRecordId + "--iErrorCode:" + iErrorCode + "--lpFileName" + lpFileName);
         Log.i(tag, "OnRecordResult--iFileLength:" + iFileLength + "--iDuration:" + iDuration + "--lpMD5" + lpMD5 + "--lpBusinessParam" + lpBusinessParam);
+        if (isSelfExit) {
+            return;
+        }
         mVideoApplication.setRecordPath(lpFileName);
 
         Intent intent = new Intent(this, RecordResultActivity.class);
@@ -614,6 +618,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     @Override
     public void onBackPressed() {
         //手动退出
+        isSelfExit = true;
         sdkUnit.VCOM_LeaveConference();
         sdkUnit.VCOM_Logout();
         super.onBackPressed();

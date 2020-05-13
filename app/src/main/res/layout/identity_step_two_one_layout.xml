@@ -5,6 +5,36 @@
     android:layout_height="match_parent"
     android:background="#AFAFAF">
 
+    <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
+        android:id="@+id/ll_local"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.videocomm.VideoInterView.view.CameraSurfaceView
+            android:id="@+id/surface_face_reco"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
+
+    <!--    <com.videocomm.VideoInterView.view.ViewfinderView-->
+    <!--        android:id="@+id/finder_view"-->
+    <!--        android:layout_width="0dp"-->
+    <!--        android:layout_height="0dp"-->
+    <!--        android:layout_marginStart="30dp"-->
+    <!--        android:layout_marginTop="40dp"-->
+    <!--        android:layout_marginEnd="30dp"-->
+    <!--        app:layout_constraintDimensionRatio="h,1:1"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/tv_face_rule2" />-->
+
+
+    <com.videocomm.VideoInterView.view.FaceScanView
+        android:id="@+id/face_scan_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <TextView
         android:id="@+id/tv_face_rule"
         android:layout_width="0dp"
@@ -31,39 +61,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_face_rule" />
 
-    <com.videocomm.VideoInterView.view.CameraSurfaceView
-        android:id="@+id/surface_face_reco"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="30dp"
-        app:layout_constraintDimensionRatio="h,1:1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_face_rule2" />
-
-    <com.videocomm.VideoInterView.view.ViewfinderView
-        android:id="@+id/finder_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="30dp"
-        app:layout_constraintDimensionRatio="h,1:1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_face_rule2" />
-
     <TextView
         android:id="@+id/tv_face_name_reco"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
+        android:layout_marginBottom="100dp"
         android:gravity="center"
-        android:textColor="@color/white"
         android:text="请确保是 *杰 本人操作"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/surface_face_reco" />
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

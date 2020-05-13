@@ -165,6 +165,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         int uploadResult = sdkUnit.VCOM_SetSendFileConfig(recordPath, "", "");
         if (uploadResult > 0) {
             int sendFileResult = sdkUnit.VCOM_SendFileControl(uploadResult, VCOM_SENDFILE_CODE_START, 0, "");
+            
             Log.d(tag, "sendFileResult:" + sendFileResult);
             mUploadDialog = DialogUtil.createUploadDialog(this, "0%");
         }

@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -22,7 +23,6 @@ import com.baidu.idl.face.platform.FaceConfig;
 import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.LivenessTypeEnum;
-import com.baidu.idl.face.platform.utils.FileUtils;
 import com.videocomm.VideoInterView.Config;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
@@ -307,7 +307,8 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
             mApplication.setUserName(etName.getText().toString());
             progressCustom.setSelectIndex(1);
             stepTwo.setVisibility(View.VISIBLE);
-            tvFaceName.setText("请确保是" + StringUtil.replaceStr(mApplication.getUserName()) + "本人操作");
+            tvFaceName.setText(Html.fromHtml(getResources().getString(R.string.black_red_black, "请确保是 ", StringUtil.replaceStr(mApplication.getUserName()), " 本人操作")));
+
             stepOneTwo.setVisibility(View.GONE);
         }
     }

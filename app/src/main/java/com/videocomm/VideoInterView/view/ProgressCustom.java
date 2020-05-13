@@ -68,7 +68,7 @@ public class ProgressCustom extends View {
     /**
      * 未选中的颜色 默认红色 #AF292C
      */
-    private int unSelectColor = Color.parseColor("#AF292C");
+    private int unSelectColor = Color.parseColor("#E2233E");
     /**
      * 背景颜色
      */
@@ -309,6 +309,5 @@ public class ProgressCustom extends View {
                 }
             }
         }
-
     }
 }

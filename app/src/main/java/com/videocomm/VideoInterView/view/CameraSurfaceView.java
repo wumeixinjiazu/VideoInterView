@@ -71,7 +71,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      * 拍照
      */
     public void takePhoto(Camera.PictureCallback callback) {
-        CameraManager.get().getCurCamera().takePicture(null, null, callback);
+        if (CameraManager.get().getCurCamera() != null) {
+            CameraManager.get().getCurCamera().takePicture(null, null, callback);
+        }
 
     }
 

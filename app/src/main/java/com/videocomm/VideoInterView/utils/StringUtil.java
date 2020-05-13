@@ -71,11 +71,26 @@ public class StringUtil {
      * @return
      */
     public static String replaceStr(String content) {
-
+        if (content.length() == 0) {
+            return "";
+        }
+        String substring = "";
+        switch (content.length()) {
+            case 1:
+                return content;
+            case 2:
+                substring = content.substring(0, content.length() - 1);
+                break;
+            case 3:
+                substring = content.substring(1, content.length() - 1);
+                break;
+            default:
+                substring = content.substring(2, content.length() - 1);
+                break;
+        }
         //字符串截取
-        String substring = content.substring(0, content.length() - 1);
+//        String substring = content.substring(0, content.length() - 1);
         //字符串替换
-        String result = content.replace(substring, "*");
-        return result;
+        return content.replace(substring, "*");
     }
 }

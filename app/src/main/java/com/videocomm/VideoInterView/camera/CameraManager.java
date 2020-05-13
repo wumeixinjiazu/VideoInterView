@@ -3,6 +3,7 @@ package com.videocomm.VideoInterView.camera;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -11,6 +12,8 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
+import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
+import com.videocomm.VideoInterView.bean.IdentityFaceBean;
 import com.videocomm.VideoInterView.utils.AppUtil;
 import com.videocomm.VideoInterView.utils.Rom;
 
@@ -92,6 +95,7 @@ public class CameraManager {
                 }
             }
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
+
         }
         camera.setParameters(parameters);
     }
@@ -149,7 +153,10 @@ public class CameraManager {
     }
 
     public Camera getCurCamera() {
-        return camera;
+        if (camera != null) {
+            return camera;
+        }
+        return null;
     }
 
     /**

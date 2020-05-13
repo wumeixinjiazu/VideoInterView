@@ -300,61 +300,62 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
     @Override
     public void OnQueueEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnQueueEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
-
-        if (iEventType == VCOM_QUEUEEVENT_QUREYQUEUELENGTH) {
-            if (iErrorCode != 0) {
-                return;
-            }
-            //进入排队后，可以获取队列人数、排队时长、排第几位
-            queueStateBean = JsonUtil.jsonToBean(lpUserData, QueueStateBean.class);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    refreshData(queueStateBean);
+        switch (iEventType) {
+            case VCOM_QUEUEEVENT_QUERYQUEUEINFO:
+                if (iErrorCode != 0) {
+                    return;
                 }
-            });
-        } else if (iEventType == VCOM_QUEUEEVENT_AGENTSERVICE) {
-            if (iErrorCode != 0) {
-                return;
-            }
-            //坐席点击 示闲 时回调
-            //坐席ID
-            String agentId = JsonUtil.jsonToStr(lpUserData, "agent");
-            mVideoApplication.setTargetUserName(agentId);
+                //查询队列
+                queueBean = JsonUtil.jsonToBean(lpUserData, QueueBean.class);
+                if (queueBean != null) {
+                    String lpCtrlValue = "{\"queueid\": \"" + 302 + "\"}";
+                    Log.d(tag, lpCtrlValue);
+                    sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_ENTERQUEUE, lpCtrlValue);//进入队列
+                }
+                break;
+            case VCOM_QUEUEEVENT_QUREYQUEUELENGTH:
+                if (iErrorCode != 0) {
+                    return;
+                }
+                //进入排队后，可以获取队列人数、排队时长、排第几位
+                queueStateBean = JsonUtil.jsonToBean(lpUserData, QueueStateBean.class);
+                runOnUiThread(() -> refreshData(queueStateBean));
+                break;
+            case VCOM_QUEUEEVENT_AGENTSERVICE:
+                if (iErrorCode != 0) {
+                    return;
+                }
+                //坐席点击 示闲 时回调
+                //坐席ID
+                String agentId = JsonUtil.jsonToStr(lpUserData, "agent");
+                mVideoApplication.setTargetUserName(agentId);
 
-            mTitleLayoutManager.setTitle("呼叫坐席" + agentId);
-            showTextView.setText("正在呼叫坐席" + agentId + "中...");
-            timeshow.setVisibility(View.INVISIBLE);
-            //发送数据
-            String temp = GenerateConfig(mVideoApplication.getUserCode(), mVideoApplication.getUserName(), SpUtil.getInstance().getString(SpUtil.USERPHONE, "15915658142"),
-                    mVideoApplication.getUserSex(), mVideoApplication.getIdcardAddress(), mVideoApplication.getIdcardNum());
-            Log.d(tag, temp);
-            sdkUnit.VCOM_SendMessage(agentId, 0, temp);
+                mTitleLayoutManager.setTitle("呼叫坐席" + agentId);
+                showTextView.setText("正在呼叫坐席" + agentId + "中...");
+                timeshow.setVisibility(View.INVISIBLE);
+                //发送数据
+                String temp = GenerateConfig(mVideoApplication.getUserCode(), mVideoApplication.getUserName(), SpUtil.getInstance().getString(SpUtil.USERPHONE, "15915658142"),
+                        mVideoApplication.getUserSex(), mVideoApplication.getIdcardAddress(), mVideoApplication.getIdcardNum());
+                Log.d(tag, temp);
+                sdkUnit.VCOM_SendMessage(agentId, 0, temp);
+                break;
+            case VCOM_QUEUEEVENT_STARTVIDEO:
+                if (iErrorCode != 0) {
+                    return;
+                }
+                //获取会议ID
+                String confid = JsonUtil.jsonToStr(lpUserData, "confid");
+                //加入会议
+                sdkUnit.VCOM_JoinConference(confid, "", "");
+                break;
+            case VCOM_QUEUEEVENT_HANGUPVIDEO:
+                //用户 坐席挂断
+                isExitQueue = true;
+                finish();
+                break;
+            default:
+                break;
 
-        } else if (iEventType == VCOM_QUEUEEVENT_STARTVIDEO) {
-            if (iErrorCode != 0) {
-                return;
-            }
-            //获取会议ID
-            String confid = JsonUtil.jsonToStr(lpUserData, "confid");
-            //加入会议
-            sdkUnit.VCOM_JoinConference(confid, "", "");
-        } else if (iEventType == VCOM_QUEUEEVENT_QUERYQUEUEINFO) {
-            if (iErrorCode != 0) {
-                return;
-            }
-            //查询队列
-            queueBean = JsonUtil.jsonToBean(lpUserData, QueueBean.class);
-            if (queueBean != null) {
-                String lpCtrlValue = "{\"queueid\": \"" + 302 + "\"}";
-                Log.d(tag, lpCtrlValue);
-                sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_ENTERQUEUE, lpCtrlValue);//进入队列
-            }
-        } else if (iEventType == VCOM_QUEUEEVENT_HANGUPVIDEO) {
-
-            //用户 坐席挂断
-            isExitQueue = true;
-            finish();
         }
     }
 

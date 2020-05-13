@@ -2,19 +2,18 @@ package com.videocomm.VideoInterView.fragment;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
 import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -27,14 +26,15 @@ import com.videocomm.VideoInterView.activity.IdentityVerifyActivity;
 import com.videocomm.VideoInterView.bean.IdentityFaceBean;
 import com.videocomm.VideoInterView.camera.CameraManager;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
+import com.videocomm.VideoInterView.utils.DisplayUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
 import com.videocomm.VideoInterView.view.CameraSurfaceView;
+import com.videocomm.VideoInterView.view.FaceScanView;
 import com.videocomm.VideoInterView.view.ProgressCustom;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -101,9 +101,12 @@ public class FaceRecoFragment extends Fragment {
                     isTakePicture = false;
                     ToastUtil.show("识别失败");
                     break;
+                default:
+                    break;
             }
         }
     };
+    private FaceScanView mFaceScanView;
 
     public FaceRecoFragment(VideoApplication mApplication) {
         this.mApplication = mApplication;
@@ -119,19 +122,12 @@ public class FaceRecoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         surfaceFaceReco = view.findViewById(R.id.surface_face_reco);
+        mFaceScanView = view.findViewById(R.id.face_scan_view);
         progressCustom = view.findViewById(R.id.progress_custom);
-        mFaceRecoHandler.sendEmptyMessageDelayed(HANDLER_FACE_RECO, 2000);
         TextView tvFaceNameReco = view.findViewById(R.id.tv_face_name_reco);
-        tvFaceNameReco.setText("请确保是" + StringUtil.replaceStr(mApplication.getUserName()) + "本人操作");
+        tvFaceNameReco.setText(Html.fromHtml(getResources().getString(R.string.black_red_black, "请确保是 ", StringUtil.replaceStr(mApplication.getUserName()), " 本人操作")));
 
         initProgress();
-
-//        surfaceFaceReco.setImageDataCallback(new CameraSurfaceView.IImageDataCallback() {
-//            @Override
-//            public void onImageData(byte[] data, Camera camera) {
-//                progress(data);
-//            }
-//        });
     }
 
     /**
@@ -164,8 +160,19 @@ public class FaceRecoFragment extends Fragment {
             CameraManager.get().getCurCamera().stopPreview();
 
             Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            bitmap = BitmapUtil.setRotateAngle(-90, bitmap);//旋转
-            bitmap = Bitmap.createScaledBitmap(bitmap, 375, 500, true);//指定大小压缩
+            Rect scanRect = mFaceScanView.getScanRect();
+
+            int x = scanRect.left;
+            int y = scanRect.top;
+            int width = scanRect.right - scanRect.left;
+            int height = scanRect.bottom - scanRect.top;
+            //旋转
+            bitmap = BitmapUtil.setRotateAngle(-90, bitmap);
+            //指定大小压缩
+            bitmap = Bitmap.createScaledBitmap(bitmap, DisplayUtil.getScreenWidth(), surfaceFaceReco.getHeight(), true);
+            //截图图片
+            bitmap = Bitmap.createBitmap(bitmap, x, y, width, height);
+
             BitmapUtil.saveBitmap2file(bitmap, FACE_RECO_PIC_PATH);
 
             CameraManager.get().getCurCamera().startPreview();
@@ -214,11 +221,15 @@ public class FaceRecoFragment extends Fragment {
     public void onPause() {
         super.onPause();
         surfaceFaceReco.closeCamera();
+
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
+        mFaceRecoHandler.sendEmptyMessageDelayed(HANDLER_FACE_RECO, 2000);
+        isTakePicture = false;
     }
 
     @Override

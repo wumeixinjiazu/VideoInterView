@@ -355,7 +355,6 @@ public class VideoActivity extends BaseActivity implements
                 RemoteMediaControl(targetUserName, 1, 1, iChannle, mSurfaceOther);
                 switchPreview(mSurfaceOther.getId());
             }
-
         }
     }
 

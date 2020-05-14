@@ -28,6 +28,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
+import com.videocomm.VideoInterView.bean.CodeBean;
 import com.videocomm.VideoInterView.bean.LoginBean;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
 import com.videocomm.VideoInterView.utils.AppUtil;
@@ -392,35 +393,44 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             return;
         }
 
-        tvSendCode.setEnabled(false);
-        tvSendCode.setTextColor(Color.parseColor("#cccccc"));
-        tvSendCode.setBackground(getResources().getDrawable(R.drawable.bg_gray_rect_r));
-        ToastUtil.show(getString(R.string.send_success));
-        mHandler.sendEmptyMessage(HANDLER_SEND_MSG_SUCCESS);
-        //发送成功 通知handler更新UI
+
         //3.向服务器请求给对应的手机号发送验证码
-//        HttpUtil.requestSendSMSForUser(etPhone.getText().toString(), etImageCode.getText().toString(), ssionId, new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                ToastUtil.show(getString(R.string.send_faild_retry));
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, Response response) throws IOException {
-//                if (response.code() != 200) {
-//                    ToastUtil.show(getString(R.string.send_faild_retry));
-//                    return;
-//                }
-//                CodeBean bean = JsonUtil.jsonToBean(response.body().string(), CodeBean.class);
-//                if (bean.getErrorcode() != 0) {
-//                    ToastUtil.show(getString(R.string.send_faild_retry));
-//                    return;
-//                } else if (bean.getErrorcode() == 0) {
-//                    //发送成功 通知handler更新UI
-//
-//                }
-//            }
-//        });
+        HttpUtil.requestSendSMSForUser(etPhone.getText().toString(), etImageCode.getText().toString(), ssionId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> {
+                    ToastUtil.show(getString(R.string.send_faild_retry));
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                runOnUiThread(() -> {
+                    if (response.code() != 200) {
+                        ToastUtil.show(getString(R.string.send_faild_retry));
+                        return;
+                    }
+                    CodeBean bean = null;
+                    try {
+                        bean = JsonUtil.jsonToBean(response.body().string(), CodeBean.class);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (bean.getErrorcode() != 0) {
+                        ToastUtil.show(getString(R.string.send_faild_retry));
+                        return;
+                    } else if (bean.getErrorcode() == 0) {
+                        //发送成功 通知handler更新UI
+                        tvSendCode.setEnabled(false);
+                        tvSendCode.setTextColor(Color.parseColor("#cccccc"));
+                        tvSendCode.setBackground(getResources().getDrawable(R.drawable.bg_gray_rect_r));
+                        ToastUtil.show(getString(R.string.send_success));
+                        mHandler.sendEmptyMessage(HANDLER_SEND_MSG_SUCCESS);
+                    }
+                });
+
+            }
+        });
     }
 
     /**

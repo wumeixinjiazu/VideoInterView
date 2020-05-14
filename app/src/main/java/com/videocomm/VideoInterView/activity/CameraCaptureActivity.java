@@ -31,7 +31,7 @@ import java.io.IOException;
  * @version[创建日期，2020/4/13 0013]
  * @function[功能简介]
  **/
-public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder.Callback {
     private boolean isLightState = false;
     private ImageView ivFlashLight;
     private SurfaceView surfaceCamera;
@@ -150,7 +150,6 @@ public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder
              */
             CameraManager.get().openDriver(surfaceHolder, CAMERA_BACK);
             CameraManager.get().setCameraDisplayOrientation(CAMERA_BACK, CameraManager.get().getCurCamera());
-            CameraManager.get().getCurCamera().setPreviewCallback(this);
             int numberOfCameras = Camera.getNumberOfCameras();
             Log.d(tag, "numberOfCameras" + numberOfCameras);
         } catch (IOException ioe) {
@@ -188,9 +187,4 @@ public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder
 
     }
 
-    @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
-        Log.d(tag, "onPreviewFrame");
-
-    }
 }

@@ -55,6 +55,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.IdentityVerifyActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.base.ParamsActivity"

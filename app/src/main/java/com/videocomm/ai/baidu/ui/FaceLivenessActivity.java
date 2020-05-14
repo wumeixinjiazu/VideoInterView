@@ -38,13 +38,13 @@ import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.FaceStatusEnum;
 import com.baidu.idl.face.platform.ILivenessStrategy;
 import com.baidu.idl.face.platform.ILivenessStrategyCallback;
-import com.baidu.idl.face.platform.ui.widget.FaceDetectRoundView;
 import com.baidu.idl.face.platform.utils.APIUtils;
 import com.baidu.idl.face.platform.utils.Base64Utils;
 import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.ai.baidu.ui.utils.CameraUtils;
 import com.videocomm.ai.baidu.ui.utils.VolumeUtils;
+import com.videocomm.ai.baidu.ui.widget.FaceDetectRoundView;
 
 import java.util.HashMap;
 import java.util.Map;

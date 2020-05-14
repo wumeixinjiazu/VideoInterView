@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2017 Baidu Inc. All rights reserved.
  */
-package com.baidu.idl.face.platform.ui.widget;
+package com.videocomm.ai.baidu.ui.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;

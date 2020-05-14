@@ -80,7 +80,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
      */
     private IdCardBackBean idCardBackBean;
     private IdCardFrontBean idCardFrontBean;
-    private IdentityFaceBean faceBean;
 
     /**
      * 身份证信息输入框
@@ -247,7 +246,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         stepThree = findViewById(R.id.step_three);
         ivIdentityState = findViewById(R.id.iv_identity_state);
         tvIdentityState = findViewById(R.id.tv_identity_state);
-
     }
 
     @Override
@@ -279,7 +277,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
                 break;
             case R.id.btn_start_recognition://开始人脸识别
                 stepTwo.setVisibility(View.GONE);
-                //后期开发
                 faceRecoFragment = new FaceRecoFragment(mApplication);
                 getSupportFragmentManager().beginTransaction().add(R.id.content, faceRecoFragment).show(faceRecoFragment).commit();
                 break;
@@ -304,7 +301,21 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
             ToastUtil.show("信息不能为空！");
         } else {
             //正确
+            //保存身份证信息
             mApplication.setUserName(etName.getText().toString());
+            mApplication.setIdcardNum(etIdcard.getText().toString());
+            if (etSex.getText().toString().contains("男")) {
+                mApplication.setUserSex(0);
+            } else {
+                mApplication.setUserSex(1);
+            }
+            mApplication.setIdcardBirth(etBirth.getText().toString());
+            mApplication.setIdcardNation(etNation.getText().toString());
+            mApplication.setIdcardAddress(etAddress.getText().toString());
+            mApplication.setIdcardSignOrganization(etSignOffice.getText().toString());
+            mApplication.setIdcardVaildTime(etStartTime.getText().toString());
+            mApplication.setIdcardInvaildTime(etEndTime.getText().toString());
+
             progressCustom.setSelectIndex(1);
             stepTwo.setVisibility(View.VISIBLE);
             tvFaceName.setText(Html.fromHtml(getResources().getString(R.string.black_red_black, "请确保是 ", StringUtil.replaceStr(mApplication.getUserName()), " 本人操作")));
@@ -437,27 +448,23 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
      * 刷新数据 对用户身份证信息列表进行填充
      */
     private void refreshData() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                //隐藏第一步 显示第二步
-                stepOne.setVisibility(View.GONE);
-                stepOneTwo.setVisibility(View.VISIBLE);
-                //获取数据列表
-                IdCardFrontBean.ContentBean frontBeanContent = idCardFrontBean.getContent();
-                IdCardBackBean.ContentBean backBeanContent = idCardBackBean.getContent();
-                //设置数据
-                etName.setText(frontBeanContent.getName());
-                etIdcard.setText(frontBeanContent.getIdCardNo());
-                etSex.setText(frontBeanContent.getSex());
-                etBirth.setText(frontBeanContent.getBirth());
-                etNation.setText(frontBeanContent.getNation());
-                etAddress.setText(frontBeanContent.getAddress());
-                etSignOffice.setText(backBeanContent.getIssueOrganiz());
-                etStartTime.setText(backBeanContent.getIssueDate());
-                etEndTime.setText(backBeanContent.getExpiryDate());
-
-            }
+        runOnUiThread(() -> {
+            //隐藏第一步 显示第二步
+            stepOne.setVisibility(View.GONE);
+            stepOneTwo.setVisibility(View.VISIBLE);
+            //获取数据列表
+            IdCardFrontBean.ContentBean frontBeanContent = idCardFrontBean.getContent();
+            IdCardBackBean.ContentBean backBeanContent = idCardBackBean.getContent();
+            //设置数据
+            etName.setText(frontBeanContent.getName());
+            etIdcard.setText(frontBeanContent.getIdCardNo());
+            etSex.setText(frontBeanContent.getSex());
+            etBirth.setText(frontBeanContent.getBirth());
+            etNation.setText(frontBeanContent.getNation());
+            etAddress.setText(frontBeanContent.getAddress());
+            etSignOffice.setText(backBeanContent.getIssueOrganiz());
+            etStartTime.setText(backBeanContent.getIssueDate());
+            etEndTime.setText(backBeanContent.getExpiryDate());
         });
     }
 
@@ -465,43 +472,24 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
      * 保存数据
      */
     private void saveData() {
-        if (idCardBackBean == null || idCardFrontBean == null || faceBean == null) {
+        if (idCardBackBean == null || idCardFrontBean == null) {
             return;
         }
         //获取数据
         IdCardFrontBean.ContentBean frontBeanContent = idCardFrontBean.getContent();
         IdCardBackBean.ContentBean backBeanContent = idCardBackBean.getContent();
-        IdentityFaceBean.ContentBean faceBeanContent = faceBean.getContent();
         //保存数据
-
-        mApplication.setIdcardNum(etIdcard.getText().toString());
-        mApplication.setUserName(etName.getText().toString());
-        if (etSex.getText().toString().contains("男")) {
-            mApplication.setUserSex(0);
-        } else {
-            mApplication.setUserSex(1);
-        }
-        mApplication.setIdcardAddress(etAddress.getText().toString());
-        mApplication.setIdcardBirth(etBirth.getText().toString());
-        mApplication.setIdcardVaildTime(etStartTime.getText().toString());
-        mApplication.setIdcardInvaildTime(etEndTime.getText().toString());
-        mApplication.setIdcardSignOrganization(etSignOffice.getText().toString());
-        mApplication.setIdcardNation(etNation.getText().toString());
-
-        List<TradeInfo.PicListBean> picList = new ArrayList<>();
         TradeInfo.PicListBean picListBean = new TradeInfo.PicListBean();
         picListBean.setPic(frontBeanContent.getFrontIdCardUrl());
         picListBean.setType(15);
         TradeInfo.PicListBean picListBean1 = new TradeInfo.PicListBean();
-        picListBean.setPic(backBeanContent.getBackIdCardUrl());
-        picListBean.setType(16);
-        TradeInfo.PicListBean picListBean2 = new TradeInfo.PicListBean();
-        picListBean.setPic(faceBeanContent.getFaceImageUrl());
-        picListBean.setType(17);
-        picList.add(picListBean);
-        picList.add(picListBean1);
-        picList.add(picListBean2);
-        mApplication.setPicList(picList);
+        picListBean1.setPic(backBeanContent.getBackIdCardUrl());
+        picListBean1.setType(16);
+
+        mApplication.getPicList().add(picListBean);
+        mApplication.getPicList().add(picListBean1);
+//        mApplication.setPicList(picList);
+
 
     }
 

@@ -41,7 +41,7 @@ public final class SoundPlayer {
      */
     private static final long LOAD_SOUND_MILLIS = 100L;
 
-    public static long playTime = 0l;
+    public static long playTime = 0L;
 
     /**
      * 工具类隐藏其构造方法

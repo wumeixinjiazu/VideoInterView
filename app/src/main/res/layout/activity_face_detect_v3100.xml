@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"></FrameLayout>
 
-    <com.baidu.idl.face.platform.ui.widget.FaceDetectRoundView
+    <com.videocomm.ai.baidu.ui.widget.FaceDetectRoundView
         android:id="@+id/detect_face_round"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

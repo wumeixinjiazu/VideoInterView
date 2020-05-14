@@ -196,7 +196,7 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
                     ToastUtil.show("请选择办理网点");
                     return;
                 }
-                //保存数据
+                //保存网点数据
                 List<TradeInfo.ExInfosBean> exInfos = new ArrayList<>();
                 List<NetworkBean.ContentBean.ResultListBean> resultList = networkBean.getContent().getResultList();
                 NetworkBean.ContentBean.ResultListBean bean = resultList.get(adapter.getClickItem());
@@ -205,6 +205,7 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
                 exInfosBean.setExValue(bean.getAddress());
                 exInfos.add(exInfosBean);
                 mVideoApplication.setExInfos(exInfos);
+
                 startActivity(new Intent(ChooseNetworkActivity.this, IdentityVerifyActivity.class));
                 finish();
                 break;

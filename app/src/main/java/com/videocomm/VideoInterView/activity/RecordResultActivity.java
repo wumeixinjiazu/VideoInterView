@@ -19,8 +19,10 @@ import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.TradeInfo;
+import com.videocomm.VideoInterView.bean.UploadFileBean;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
 import com.videocomm.VideoInterView.utils.DialogUtil;
+import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
@@ -29,14 +31,19 @@ import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKEvent;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+
 import static com.videocomm.VideoInterView.Constant.LOCALSCENE_CLOSE;
-import static com.videocomm.VideoInterView.Constant.LOCALSCENE_OPEN;
 import static com.videocomm.VideoInterView.Constant.RESULT_CODE_Record_Result_ACT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_EXIT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCENE;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SENDFILE_CODE_START;
 
 /**
  * @author[wengCJ]
@@ -126,9 +133,9 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
             case R.id.btn_start_queue://开始排队/转人工服务
                 switch (btnQueue.getText().toString()) {
                     case "转人工客服":
-                        sdkUnit.VCOM_LeaveConference();
-                        //设置临柜模式
                         sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_LOCALSCENE, LOCALSCENE_CLOSE);
+                        sdkUnit.VCOM_LeaveConference();
+                        //设置取消临柜模式
                         break;
                     case "提交视频":
                         fileUpload();
@@ -162,13 +169,71 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         if (recordPath == null) {
             return;
         }
-        int uploadResult = sdkUnit.VCOM_SetSendFileConfig(recordPath, "", "");
-        if (uploadResult > 0) {
-            int sendFileResult = sdkUnit.VCOM_SendFileControl(uploadResult, VCOM_SENDFILE_CODE_START, 0, "");
-            
-            Log.d(tag, "sendFileResult:" + sendFileResult);
-            mUploadDialog = DialogUtil.createUploadDialog(this, "0%");
+        mUploadDialog = DialogUtil.createUploadDialog(this, "0%");
+
+        File file = new File(recordPath);
+        if (file.exists()) {
+            //请求上传文件
+            HttpUtil.requestUploadFile(file, new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> {
+                        ToastUtil.show("上传失败，请重试");
+                        mUploadDialog.dismiss();
+                    });
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String content = response.body().string();
+                    Log.d(tag, content);
+                    runOnUiThread(() -> {
+                        mUploadDialog.dismiss();
+                        if (content == null) {
+                            return;
+                        }
+                        UploadFileBean bean = JsonUtil.jsonToBean(content, UploadFileBean.class);
+                        if (bean == null || bean.getErrorcode() != 0) {
+                            return;
+                        }
+                        //成功 调用请求发送交易信息
+                        String data = onUploadTradeInfo(bean.getContent().getFileName());
+                        HttpUtil.requestSendTradeInfo(data, new Callback() {
+                            @Override
+                            public void onFailure(Call call, IOException e) {
+                                runOnUiThread(() -> {
+                                    ToastUtil.show("上传失败，请重试");
+                                });
+                            }
+
+                            @Override
+                            public void onResponse(Call call, Response response) throws IOException {
+                                String result = response.body().string();
+                                Log.d(tag, result);
+                                runOnUiThread(() -> {
+                                    ToastUtil.show("上传成功");
+                                    tvUploadState.setText("上传成功");
+
+                                    Intent intent = new Intent(RecordResultActivity.this, ResultActivity.class);
+                                    intent.putExtra("isSuccess", true);
+                                    startActivity(intent);
+                                    finish();
+                                });
+                            }
+                        });
+
+                    });
+                }
+            });
         }
+
+        //用SDK上传文件
+//        int uploadResult = sdkUnit.VCOM_SetSendFileConfig(recordPath, "", "");
+//        if (uploadResult > 0) {
+//            int sendFileResult = sdkUnit.VCOM_SendFileControl(uploadResult, VCOM_SENDFILE_CODE_START, 0, "");
+//
+//            Log.d(tag, "sendFileResult:" + sendFileResult);
+//        }
     }
 
     /**
@@ -189,7 +254,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     /**
      * 上传数据到后台
      */
-    public void onUploadTradeInfo() {
+    public String onUploadTradeInfo(String videoPath) {
 
         String tradNo = StringUtil.getCurrentFormatTime();
         Random random = new Random();
@@ -209,13 +274,22 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         info.setIdcardInvaildTime(mVideoApplication.getIdcardInvaildTime());
         info.setIdcardSignOrganization(mVideoApplication.getIdcardSignOrganization());
         info.setIdcardNation(mVideoApplication.getIdcardNation());
+        info.setTradeNo(tradNo);
+        Log.d(tag, "data:---" + mVideoApplication.getPicList());
+        Log.d(tag, "data:---" + mVideoApplication.getExInfos());
+
         info.setPicList(mVideoApplication.getPicList());
         info.setExInfos(mVideoApplication.getExInfos());
-        info.setTradeNo(tradNo);
+
+        List<TradeInfo.VideosBean> videosBeanList = new ArrayList<>();
+        TradeInfo.VideosBean bean = new TradeInfo.VideosBean();
+        bean.setFilepath(videoPath);
+        bean.setType(2);
+        videosBeanList.add(bean);
+        info.setVideos(videosBeanList);
         String data = JsonUtil.beanToString(info);
-//        HashMap<String, String> map = new HashMap<String, String>();
-//        map.put("data", jsonObject.toString());
         Log.d(tag, "data:---" + data);
+        return data;
     }
 
     /**
@@ -258,6 +332,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(tag, "onActivityResult" + requestCode);
+        //排队界面返回 调用加入会议（因为进入到队列需要调用离开会议 此界面可能需要重新录制）
         sdkUnit.VCOM_JoinConference("", "", "");
     }
 
@@ -296,17 +371,6 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     @Override
     public void OnSendFileStatus(int iHandle, int iErrorCode, int iProgress, String lpFileName, long iFileLength, int iFlags, String lpParam) {
         Log.i(tag, "OnSendFileStatus--iHandle:" + iHandle + "--iErrorCode:" + iErrorCode + "--iProgress" + iProgress + "--iFileLength" + iFileLength + "--iFlags" + iFlags + "--lpParam" + lpParam);
-        DialogUtil.setProgress(iProgress + "%");
-        if (iProgress == 100 && iErrorCode == 0) {
-            mUploadDialog.dismiss();
-            ToastUtil.show("上传成功");
-            tvUploadState.setText("上传成功");
-
-            Intent intent = new Intent(this, ResultActivity.class);
-            intent.putExtra("isSuccess", true);
-            startActivity(intent);
-            finish();
-        }
     }
 
     @Override
@@ -350,4 +414,5 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         super.onDestroy();
         sdkUnit.RemoveSDKEvent(this);
     }
+
 }

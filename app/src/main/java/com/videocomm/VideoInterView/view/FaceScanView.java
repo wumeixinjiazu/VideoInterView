@@ -177,4 +177,5 @@ public class FaceScanView extends View {
     public void setScanBg(int scanBg) {
         this.scanBg = scanBg;
     }
+    
 }

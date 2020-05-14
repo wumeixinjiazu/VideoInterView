@@ -503,7 +503,9 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sdkUnit.VCOM_Release();
+        if (sdkUnit != null) {
+            sdkUnit.VCOM_Release();
+        }
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 }

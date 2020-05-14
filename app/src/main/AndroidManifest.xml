@@ -42,6 +42,7 @@
         </activity>
         <activity
             android:name=".activity.LoginActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
         <activity
@@ -68,10 +69,10 @@
         <activity
             android:name=".activity.QueueActivity1"
             android:screenOrientation="portrait" />
-        <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <!--        <activity-->
+        <!--            android:name="com.yalantis.ucrop.UCropActivity"-->
+        <!--            android:screenOrientation="portrait"-->
+        <!--            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />-->
         <activity
             android:name=".activity.RiskReportActivity"
             android:screenOrientation="landscape" />
@@ -95,7 +96,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.VideoActivity"
-            android:screenOrientation="portrait" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="landscape" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

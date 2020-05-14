@@ -17,7 +17,7 @@ import com.videocomm.VideoInterView.utils.DisplayUtil;
  * @version[创建日期，2020/4/26 0026]
  * @function[功能简介]
  **/
-public class DragSurfaceView extends CameraSurfaceView {
+public class DragSurfaceView extends SurfaceView {
     int mLastX = 0;
     int mLastY = 0;
     int screenWidth = DisplayUtil.getScreenWidth();

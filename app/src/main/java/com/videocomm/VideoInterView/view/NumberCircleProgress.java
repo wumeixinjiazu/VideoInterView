@@ -117,6 +117,5 @@ public class NumberCircleProgress extends View {
                 canvas.drawText(numList.get(i), realRadius + (i * averageCircle) + (i * realRadius * 2), realRadius + rectNumList.get(i).height() / 2, mTextPaint);
             }
         }
-
     }
 }

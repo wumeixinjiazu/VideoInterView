@@ -30,6 +30,9 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
         return selectIndex;
     }
 
+    /**
+     * @return 返回选择的业务
+     */
     public String getSelectBusiness() {
         if (selectIndex == -1) {
             return "";
@@ -37,6 +40,9 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
         return data.get(selectIndex);
     }
 
+    /**
+     * @param selectIndex  选择的下标
+     */
     public void setSelectIndex(int selectIndex) {
         this.selectIndex = selectIndex;
     }

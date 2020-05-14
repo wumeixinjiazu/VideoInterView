@@ -145,9 +145,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
 
         LocalMediaShow mLocalMediaShow = new LocalMediaShow(mLocalSurface, lpUserCode);
         mLocalSurface.getHolder().addCallback(mLocalMediaShow);
-
-        //设置临柜模式
-        sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_LOCALSCENE, LOCALSCENE_OPEN);
     }
 
     /**
@@ -158,6 +155,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
             sdkUnit = VComMediaSDK.GetInstance();
         }
         sdkUnit.SetSDKEvent(this);
+        //设置临柜模式
+        sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_LOCALSCENE, LOCALSCENE_OPEN);
         String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "VideoInterView");
 
         sdkUnit.VCOM_SetUserConfig(userPhone, userPhone, "", "", "");
@@ -251,7 +250,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         chronometer.stop();//计时器停止
         isRecording = false;
         ASK_STATE = ASK_STATE_ONE;
-
     }
 
     @Override
@@ -262,7 +260,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     @Override
     public void OnSendFileStatus(int iHandle, int iErrorCode, int iProgress, String lpFileName, long iFileLength, int iFlags, String lpParam) {
         Log.i(tag, "OnSendFileStatus--iHandle:" + iHandle + "--iErrorCode:" + iErrorCode + "--iProgress" + iProgress + "--iFileLength" + iFileLength + "--iFlags" + iFlags + "--lpParam" + lpParam);
-
     }
 
     @Override
@@ -318,6 +315,10 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     public void OnAIAbilityEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnAIAbilityEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
         LogUtil.e(tag, "lpUserData:" + lpUserData);
+        
+//        sdkUnit.VCOM_StopRecord(iRecordId);
+//        isSuccess = true;
+
         switch (iEventType) {
             case VCOM_AIABILITY_EVENT_PROCESSING:
                 break;
@@ -359,6 +360,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                     boolean isAnswerFalse = result.contains("不是") || result.contains("否") || result.contains("不") || result.contains("没有") || result.length() == 0;
                     //回答通过条件
                     boolean isAnswerTrue = result.contains("是的") || result.contains("是") || result.contains("确认") || result.contains("对的") || result.contains("对");
+
                     //处理回答的信息
                     if (isAnswerFalse) {
                         answerHandler(false);

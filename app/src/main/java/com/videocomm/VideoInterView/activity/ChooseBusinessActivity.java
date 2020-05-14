@@ -51,6 +51,8 @@ public class ChooseBusinessActivity extends TitleActivity {
                 startActivity(intent);
                 finish();
                 break;
+            default:
+                break;
         }
     }
 

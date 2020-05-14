@@ -78,6 +78,8 @@ public class HttpUtil {
     private static final String REQUEST_NETWORK = URL_BASE + "/v1/client/businessOffice/getlistByCity";
     private static final String REQUEST_FACE_RECO = URL_BASE + "/v1/client/face/detectFace";
     private static final String REQUEST_LIVING_DETECTION = URL_BASE + "/v1/client/face/livingDetection";
+    private static final String REQUEST_SEND_TRADEINFO = URL_BASE + "/v1/client/trade/saveTradeInfo";
+    private static final String REQUEST_UPLOAD_FILE = URL_BASE + "/v1/client/uploadFile";
     private static OkHttpClient okHttpClient;
 
     static {
@@ -170,7 +172,7 @@ public class HttpUtil {
                 .add("phoneNumber", phoneNumber)
                 .add("imageCapcha", imageCapcha)
                 .add("smsCaptcha", smsCaptcha)
-                .add("appCode","vipVideo")
+                .add("appCode", "VCom")
                 .add("loginType", "0").build();
         requestPost(REQUEST_LOGIN, formBody, callback);
     }
@@ -214,10 +216,42 @@ public class HttpUtil {
                 .addFormDataPart("action", action)
                 .build();
         requestPost(REQUEST_LIVING_DETECTION, requestBody, callback);
-
     }
 
-    public static void requestPost(String url, RequestBody body, Callback callback) {
+    //请求发送业务数据
+    public static void requestSendTradeInfo(String data, Callback callback) {
+        Log.d(tag, data);
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("token", token)
+                .addFormDataPart("phoneNumber", userPhone)
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("data", data)
+
+                .build();
+        requestPost(REQUEST_SEND_TRADEINFO, requestBody, callback);
+    }
+
+    //上传文件
+    public static void requestUploadFile(File file, Callback callback) {
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("token", token)
+                .addFormDataPart("phoneNumber", userPhone)
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("file", file.getName(),
+                        RequestBody.create(MediaType.parse("multipart/form-data"), file))
+                .build();
+        requestPost(REQUEST_UPLOAD_FILE, requestBody, callback);
+    }
+
+    private static void requestPost(String url, RequestBody body, Callback callback) {
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)

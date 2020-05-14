@@ -23,6 +23,7 @@ public class DialogFactory {
     private TextView mTextViewTitle;
 
     public static int mCurrentDialogId = 0;
+    public static final int DIALOGID_RISK_REPORT = 1;
     public static final int DIALOGID_ENDCALL = 5;
     public static final int DIALOGID_EXIT_YEWU = 8;
     public static final int DIALOGID_EXIT_QUEUE = 9;

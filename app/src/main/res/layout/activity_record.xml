@@ -12,11 +12,6 @@
 
     </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
 
-    <com.videocomm.VideoInterView.view.FaceScanView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
     <TextView
         android:id="@+id/tv_record_rule_l"
         android:layout_width="0dp"

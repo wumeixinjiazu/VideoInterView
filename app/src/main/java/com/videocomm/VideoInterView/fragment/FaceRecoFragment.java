@@ -24,6 +24,7 @@ import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.IdentityVerifyActivity;
 import com.videocomm.VideoInterView.bean.IdentityFaceBean;
+import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.camera.CameraManager;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
 import com.videocomm.VideoInterView.utils.DisplayUtil;
@@ -38,6 +39,7 @@ import com.videocomm.VideoInterView.view.ProgressCustom;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -78,7 +80,7 @@ public class FaceRecoFragment extends Fragment {
                     isTakePicture = false;
 
                     if (!content.contains("人脸识别成功")) {
-                        ToastUtil.show("识别失败");
+                        ToastUtil.show("识别失败,请将脸放置在取景框内");
                         sendEmptyMessageDelayed(HANDLER_FACE_RECO, 1000);
                         return;
                     }
@@ -93,13 +95,22 @@ public class FaceRecoFragment extends Fragment {
 
                     } else {
                         //识别成功
+                        //保存数据
+                        List<TradeInfo.PicListBean> picList = new ArrayList<>();
+
+                        TradeInfo.PicListBean picListBean = new TradeInfo.PicListBean();
+                        picListBean.setPic(faceBeanContent.getFaceImageUrl());
+                        picListBean.setType(17);
+                        picList.add(picListBean);
+                        mApplication.setPicList(picList);
+
                         IdentityVerifyActivity activity = (IdentityVerifyActivity) getActivity();
                         activity.next();
                     }
                     break;
                 case HANDLER_FACE_FAILD://人脸识别失败返回
                     isTakePicture = false;
-                    ToastUtil.show("识别失败");
+                    ToastUtil.show("识别失败,请将脸放置在取景框内");
                     break;
                 default:
                     break;

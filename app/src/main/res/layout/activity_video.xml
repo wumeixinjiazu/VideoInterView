@@ -12,7 +12,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent">
 
             <include
                 layout="@layout/video_session"
@@ -50,6 +50,6 @@
             android:textColor="@color/dancen"
             android:textSize="18sp"
             android:visibility="gone" />
-    </LinearLayout>/
+    </LinearLayout>
 
 </LinearLayout>

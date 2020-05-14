@@ -18,6 +18,7 @@ import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.QueueBean;
 import com.videocomm.VideoInterView.bean.QueueStateBean;
+import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
@@ -27,6 +28,7 @@ import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKDefine;
 import com.videocomm.mediasdk.VComSDKEvent;
 
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -308,7 +310,25 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 //查询队列
                 queueBean = JsonUtil.jsonToBean(lpUserData, QueueBean.class);
                 if (queueBean != null) {
+                    //默认队列
                     String lpCtrlValue = "{\"queueid\": \"" + 302 + "\"}";
+
+                    switch (mVideoApplication.getSelectBussiness()) {
+                        case "汽车消费办理业务":
+                            lpCtrlValue = "{\"queueid\": \"" + 201 + "\"}";
+                            break;
+                        case "小额消费贷款业务":
+                            lpCtrlValue = "{\"queueid\": \"" + 202 + "\"}";
+                            break;
+                        case "房屋装修贷业务":
+                            lpCtrlValue = "{\"queueid\": \"" + 301 + "\"}";
+                            break;
+                        case "信用卡面签业务业务":
+                            lpCtrlValue = "{\"queueid\": \"" + 302 + "\"}";
+                            break;
+                        default:
+                            break;
+                    }
                     Log.d(tag, lpCtrlValue);
                     sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_ENTERQUEUE, lpCtrlValue);//进入队列
                 }
@@ -338,6 +358,9 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                         mVideoApplication.getUserSex(), mVideoApplication.getIdcardAddress(), mVideoApplication.getIdcardNum());
                 Log.d(tag, temp);
                 sdkUnit.VCOM_SendMessage(agentId, 0, temp);
+
+                String picData = GeneratePicConfig();
+                sdkUnit.VCOM_SendMessage(agentId, 1, picData);
                 break;
             case VCOM_QUEUEEVENT_STARTVIDEO:
                 if (iErrorCode != 0) {
@@ -355,7 +378,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 break;
             default:
                 break;
-
         }
     }
 
@@ -376,6 +398,24 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
 
         String temp = "{\"userId\":\"" + userCode + "\",\"username\":\"" + userCode + "\",\"userStr\":{\"content\":[{\"groupData\":[{\"key\":\"userName\",\"name\":\"客户名称\",\"order\":1,\"value\":\"" + userName + "\"},{\"key\":\"userPhone\",\"name\":\"客户手机\",\"order\":2,\"value\":\"" + userPhone + "\"},{\"key\":\"userSex\",\"name\":\"客户性别\",\"order\":3,\"value\":\"" + sex + "\"},{\"key\":\"idcardAddress\",\"name\":\"证件地址\",\"order\":4,\"value\":\"" + address + "\"},{\"key\":\"idcardNum\",\"name\":\"证件号码\",\"order\":5,\"value\":\"" + idcardNum + "\"}],\"groupName\":\"客户信息\",\"groupOrder\":1},{\"groupData\":[{\"key\":\"productNumber\",\"name\":\"产品编号\",\"order\":1,\"value\":\"Product01\"},{\"key\":\"productName\",\"name\":\"产品名称\",\"order\":2,\"value\":\"中国一号资产管理计划\"},{\"key\":\"integratorCode\",\"name\":\"渠道编码\",\"order\":3,\"value\":\"QuDao01\"},{\"key\":\"integratorName\",\"name\":\"渠道名称\",\"order\":4,\"value\":\"自助渠道\"},{\"key\":\"businessCode\",\"name\":\"业务编码\",\"order\":5,\"value\":\"Biz01\"},{\"key\":\"businessName\",\"name\":\"业务类型\",\"order\":6,\"value\":\"双录业务\"}],\"groupName\":\"业务信息\",\"groupOrder\":2}],\"expansion\":\"{\\\"address\\\":\\\"广州市天河区科韵路\\\",\\\"ip\\\":\\\"192.168.0.101\\\"}\",\"from\":\"Android\",\"thirdTradeNo\":\"" + tradNo + "\",\"type\":2}}";
 
+        return temp;
+    }
+
+    private String GeneratePicConfig() {
+        String frontPic = "";
+        String backPic = "";
+        String facePic = "";
+        List<TradeInfo.PicListBean> picList = mVideoApplication.getPicList();
+        for (int i = 0; i < picList.size(); i++) {
+            if (picList.get(i).getType() == 15) {
+                frontPic = picList.get(i).getPic();
+            } else if (picList.get(i).getType() == 16) {
+                backPic = picList.get(i).getPic();
+            } else if (picList.get(i).getType() == 17) {
+                facePic = picList.get(i).getPic();
+            }
+        }
+        String temp = "{\"picList\":[{\"pic\":\"" + frontPic + "\",\"type\":15},{\"pic\":\"" + backPic + "\",\"type\":16},{\"pic\":\"" + facePic + "\",\"type\":17}]}";
         return temp;
     }
 

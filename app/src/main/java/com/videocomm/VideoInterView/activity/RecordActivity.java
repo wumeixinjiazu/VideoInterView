@@ -313,9 +313,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         Log.i(tag, "OnAIAbilityEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
         LogUtil.e(tag, "lpUserData:" + lpUserData);
 
-        sdkUnit.VCOM_StopRecord(iRecordId);
-        isSuccess = true;
-
         switch (iEventType) {
             case VCOM_AIABILITY_EVENT_PROCESSING:
                 break;

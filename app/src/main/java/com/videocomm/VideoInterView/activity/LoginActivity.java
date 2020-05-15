@@ -130,13 +130,14 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
                         SpUtil.getInstance().saveString(SpUtil.TOKEN, bean.getContent().getToken());
                         SpUtil.getInstance().saveString(SpUtil.USERPHONE, bean.getContent().getPhoneNumber());
                         SpUtil.getInstance().saveString(SpUtil.APPID, bean.getContent().getAppId());
+                        //4.启动页面
+                        activity.startActivity(new Intent(activity, ChooseNetworkActivity.class));
+                        ToastUtil.show(activity.getString(R.string.login_success));
+
                         //清除验证码
                         activity.etImageCode.setText("");
                         activity.etCode.setText("");
                         activity.refreshImageCode();
-                        //4.启动页面
-                        activity.startActivity(new Intent(activity, ChooseNetworkActivity.class));
-                        ToastUtil.show(activity.getString(R.string.login_success));
                     }
                     activity.mLoadingDialog.dismiss();
                     break;

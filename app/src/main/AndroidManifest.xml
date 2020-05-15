@@ -77,28 +77,37 @@
         <activity
             android:name=".activity.RiskReportActivity"
             android:screenOrientation="landscape" />
-
         <activity
             android:name=".activity.ResultActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".activity.RecordActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".activity.RecordResultActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait" />
-        <activity android:name="com.videocomm.ai.baidu.ui.FaceLivenessActivity" />
-        <activity android:name="com.videocomm.ai.baidu.ui.FaceDetectActivity" />
+
+        <activity
+            android:name="com.videocomm.ai.baidu.ui.FaceLivenessActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.videocomm.ai.baidu.ui.FaceDetectActivity"
+            android:screenOrientation="portrait" />
+
         <activity
             android:name=".activity.QueueActivity"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".activity.VideoActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="portrait" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -19,6 +19,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -63,19 +64,24 @@ public class VideoActivity extends BaseActivity implements
     private SurfaceView mSurfaceSelf;
     private SurfaceView mSurfaceOther;
     private SurfaceView mSurfaceRemote;
+    private Dialog dialog;
     private TextView mTxtTime;
     private Button mBtnEndSession;
-    private Dialog dialog;
 
     private Handler mHandler;
-    private Timer mTimerShowVideoTime;
     private TimerTask mTimerTask;
-    public static final int MSG_TIMEUPDATE = 2;
+    private Timer mTimerShowVideoTime;
 
-    int videocallSeconds = 0;
     private VComMediaSDK sdkUnit;
     private VideoApplication mVideoApplication;
+
+    private int iChannle;//风险播放流（第三人）
+    int videocallSeconds = 0;
     private String targetUserName = "";
+    private boolean isHasOther = false;//是否有其他人（第三人）
+    public static final int MSG_TIMEUPDATE = 2;
+    private LinearLayout llSurfaceOther;
+    private LinearLayout llSurfaceRemote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,11 +123,11 @@ public class VideoActivity extends BaseActivity implements
         RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
         mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
 
-        RemoteMediaShow mRemoteMediaShow1 = new RemoteMediaShow(mSurfaceOther, targetUserName, 5, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
-        mSurfaceOther.getHolder().addCallback(mRemoteMediaShow1);
+//        RemoteMediaShow mRemoteMediaShow1 = new RemoteMediaShow(mSurfaceOther, targetUserName, 5, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
+//        mSurfaceOther.getHolder().addCallback(mRemoteMediaShow1);
+//        mSurfaceOther.setZOrderOnTop(true);
 
         mSurfaceSelf.setZOrderOnTop(true);
-        mSurfaceOther.setZOrderOnTop(true);
     }
 
     /**
@@ -157,6 +163,11 @@ public class VideoActivity extends BaseActivity implements
 
         //打开其他其他用户的音视频
         sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteVideoOpen, "");
+
+        if (isHasOther) {
+            //关闭第三方流
+            sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, iChannle, mIntRemoteVideoOpen, mIntRemoteVideoOpen, "");
+        }
     }
 
     @Override
@@ -167,6 +178,11 @@ public class VideoActivity extends BaseActivity implements
 
         //关闭其他其他用户的音视频
         sdkUnit.VCOM_CloseRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, "");
+        if (isHasOther) {
+            //关闭第三方流
+            sdkUnit.VCOM_CloseRemoteMediaStream(targetUserName, iChannle, "");
+        }
+
     }
 
     @Override
@@ -190,6 +206,7 @@ public class VideoActivity extends BaseActivity implements
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
+
         super.onDestroy();
     }
 
@@ -219,9 +236,9 @@ public class VideoActivity extends BaseActivity implements
         this.setContentView(R.layout.activity_video);
 
         mVideoApplication = (VideoApplication) getApplication();
-
+        llSurfaceOther = findViewById(R.id.ll_surface_other);
+        llSurfaceRemote = findViewById(R.id.ll_surface_remote);
         mSurfaceSelf = findViewById(R.id.surface_local);
-        mSurfaceOther = findViewById(R.id.surface_other);
         mSurfaceRemote = findViewById(R.id.surface_remote);
         mTxtTime = findViewById(R.id.txt_time);
         mBtnEndSession = findViewById(R.id.btn_endsession);
@@ -229,7 +246,6 @@ public class VideoActivity extends BaseActivity implements
         mBtnEndSession.setOnClickListener(this);
         mSurfaceSelf.setOnClickListener(this);
         mSurfaceRemote.setOnClickListener(this);
-        mSurfaceOther.setOnClickListener(this);
     }
 
 
@@ -244,9 +260,6 @@ public class VideoActivity extends BaseActivity implements
             case R.id.surface_remote:
 //                switchPreview(R.id.surface_remote);
                 break;
-            case R.id.surface_other:
-//                switchPreview(R.id.surface_other);
-                break;
             default:
                 break;
         }
@@ -254,13 +267,10 @@ public class VideoActivity extends BaseActivity implements
 
     private void alertDialog() {
 
-        dialog = DialogFactory.getDialog(DialogFactory.DIALOGID_ENDCALL, this, new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(VideoActivity.this, LoginActivity.class));
-                finish();
-                ToastUtil.show("正在结束视频通话...");
-            }
+        dialog = DialogFactory.getDialog(DialogFactory.DIALOGID_ENDCALL, this, v -> {
+            startActivity(new Intent(VideoActivity.this, LoginActivity.class));
+            finish();
+            ToastUtil.show("正在结束视频通话...");
         });
         dialog.show();
     }
@@ -348,12 +358,20 @@ public class VideoActivity extends BaseActivity implements
             if (streamIndex != null) {
                 //设置裁剪
                 sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_SHRINK);
-
+                //设置横屏
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 //设置裁剪模式
-                int iChannle = Integer.parseInt(streamIndex);
-
-                RemoteMediaControl(targetUserName, 1, 1, iChannle, mSurfaceOther);
-                switchPreview(mSurfaceOther.getId());
+                iChannle = Integer.parseInt(streamIndex);
+                //设置第三人开启
+                isHasOther = true;
+                //开启风险播放流
+                if (mSurfaceOther == null) {
+                    mSurfaceOther = new SurfaceView(VideoActivity.this);
+                    llSurfaceOther.addView(mSurfaceOther, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                }
+                RemoteMediaControl(targetUserName, mIntRemoteVideoOpen, mIntRemoteAudioOpen, iChannle, mSurfaceOther);
+                //切换布局
+                switchParentPreview();
             }
         }
     }
@@ -536,6 +554,23 @@ public class VideoActivity extends BaseActivity implements
                 mLargeViewId = iViewId;
             }
         }
+    }
+
+    /**
+     * 切换父控件布局参数已达到两个视频切换
+     */
+    private void switchParentPreview() {
+        LinearLayout remoteLayout = findViewById(R.id.ll_surface_remote);
+        LinearLayout otherLayout = findViewById(R.id.ll_surface_other);
+
+        ViewGroup.LayoutParams remoteLayoutParams = remoteLayout.getLayoutParams();
+        ViewGroup.LayoutParams otherLayoutParams = otherLayout.getLayoutParams();
+
+        remoteLayout.setLayoutParams(otherLayoutParams);
+
+        otherLayout.setLayoutParams(remoteLayoutParams);
+
+        mSurfaceRemote.setZOrderOnTop(true);
     }
 
 

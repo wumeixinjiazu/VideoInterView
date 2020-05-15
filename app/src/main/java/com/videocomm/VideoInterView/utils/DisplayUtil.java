@@ -1,9 +1,11 @@
 package com.videocomm.VideoInterView.utils;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Build;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
 
 /**
@@ -75,5 +77,15 @@ public class DisplayUtil {
     public static int sp2px(float spValue) {
         final float fontScale = AppUtil.getApp().getResources().getDisplayMetrics().scaledDensity;
         return (int) (spValue * fontScale + 0.5f);
+    }
+
+    public static boolean isPortrait() {
+        if (AppUtil.getApp().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            //竖屏
+            return true;
+        } else {
+            //横屏
+            return false;
+        }
     }
 }

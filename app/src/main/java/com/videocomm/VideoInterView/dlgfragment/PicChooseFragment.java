@@ -51,7 +51,7 @@ public class PicChooseFragment extends BaseDlgFragment implements View.OnClickLi
         return fragment;
     }
 
-    private PicChooseFragment() {
+    public PicChooseFragment() {
 
     }
 

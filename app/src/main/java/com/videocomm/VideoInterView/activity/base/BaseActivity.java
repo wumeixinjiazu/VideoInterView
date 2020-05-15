@@ -82,7 +82,6 @@ public class BaseActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(tag, "onDestroy");
-
     }
 
     // 系统的Density

@@ -1,7 +1,6 @@
 package com.videocomm.VideoInterView.activity;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
@@ -15,26 +14,20 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
-import com.baidu.idl.face.platform.FaceConfig;
-import com.baidu.idl.face.platform.FaceEnvironment;
-import com.baidu.idl.face.platform.FaceSDKManager;
-import com.baidu.idl.face.platform.LivenessTypeEnum;
-import com.videocomm.VideoInterView.Config;
 import com.videocomm.VideoInterView.Constant;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.ParamsActivity;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.adapter.NetworkAdapter;
-import com.videocomm.VideoInterView.bean.IdCardBackBean;
 import com.videocomm.VideoInterView.bean.NetworkBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
+import com.videocomm.VideoInterView.utils.DisplayUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
-import com.videocomm.ai.baidu.ui.FaceLivenessActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,7 +58,6 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_network);
         mTitleLayoutManager.setTitle(getString(R.string.choose_network));
-
         initView();
         //请求数据
         requestData(tvChooseCityIn.getText().toString());

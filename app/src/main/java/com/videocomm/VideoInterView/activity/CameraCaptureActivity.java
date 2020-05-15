@@ -34,7 +34,6 @@ import java.io.IOException;
 public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder.Callback {
     private boolean isLightState = false;
     private ImageView ivFlashLight;
-    private SurfaceView surfaceCamera;
     private boolean isFront;//Image类型 身份证的正面框 反面框
     private boolean isTakePicture;//记录是否拍照
     private boolean hasSurface;//记录Surface画面是否开启
@@ -55,7 +54,6 @@ public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder
 
         ivFlashLight = findViewById(R.id.iv_flash_light);
         ImageView bgIdcard = findViewById(R.id.iv_camera_rect);
-        surfaceCamera = findViewById(R.id.surface_camera);
 
         if (isFront) {
             bgIdcard.setBackground(getResources().getDrawable(R.drawable.ic_camera_rect));
@@ -69,18 +67,15 @@ public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder
      */
     private void takePhoto() {
         Log.d(tag, "takePhoto");
-        CameraManager.get().takePicture(null, null, new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        CameraManager.get().takePicture(null, null, (data, camera) -> {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-                bitmap = Bitmap.createScaledBitmap(bitmap, 400, 300, true);//指定大小压缩
-                isTakePicture = false;
-                Intent intent = new Intent();
-                intent.putExtra("bitmap", bitmap);
-                setResult(RESULT_OK, intent);
-                finish();
-            }
+            bitmap = Bitmap.createScaledBitmap(bitmap, 400, 300, true);//指定大小压缩
+            isTakePicture = false;
+            Intent intent = new Intent();
+            intent.putExtra("bitmap", bitmap);
+            setResult(RESULT_OK, intent);
+            finish();
         });
     }
 

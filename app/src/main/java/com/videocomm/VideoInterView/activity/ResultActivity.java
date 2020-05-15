@@ -54,8 +54,7 @@ public class ResultActivity extends TitleActivity implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_confirm:
-                startActivity(new Intent(this, LoginActivity.class));
-                finish();
+                onBackPressed();
                 break;
             default:
                 break;
@@ -69,5 +68,11 @@ public class ResultActivity extends TitleActivity implements View.OnClickListene
             sdkUnit.VCOM_LeaveConference();
             sdkUnit.VCOM_Logout();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(this, LoginActivity.class));
+        super.onBackPressed();
     }
 }

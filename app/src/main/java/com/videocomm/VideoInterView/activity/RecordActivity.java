@@ -287,13 +287,10 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
             sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_ASR_AWORD, asr);
 
             //4秒后结束ASR识别
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    String asr = GenerateASRConfig(mVideoApplication.getUserCode(), 2);
-                    Log.d(tag, asr);
-                    sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_ASR_AWORD, asr);
-                }
+            new Handler().postDelayed(() -> {
+                String asr1 = GenerateASRConfig(mVideoApplication.getUserCode(), 2);
+                Log.d(tag, asr1);
+                sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_ASR_AWORD, asr1);
             }, 3000);
         }
     }
@@ -315,9 +312,9 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     public void OnAIAbilityEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnAIAbilityEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
         LogUtil.e(tag, "lpUserData:" + lpUserData);
-        
-//        sdkUnit.VCOM_StopRecord(iRecordId);
-//        isSuccess = true;
+
+        sdkUnit.VCOM_StopRecord(iRecordId);
+        isSuccess = true;
 
         switch (iEventType) {
             case VCOM_AIABILITY_EVENT_PROCESSING:

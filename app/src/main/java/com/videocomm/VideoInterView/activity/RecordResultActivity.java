@@ -221,7 +221,6 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
                                 });
                             }
                         });
-
                     });
                 }
             });
@@ -275,8 +274,6 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         info.setIdcardSignOrganization(mVideoApplication.getIdcardSignOrganization());
         info.setIdcardNation(mVideoApplication.getIdcardNation());
         info.setTradeNo(tradNo);
-        Log.d(tag, "data:---" + mVideoApplication.getPicList());
-        Log.d(tag, "data:---" + mVideoApplication.getExInfos());
 
         info.setPicList(mVideoApplication.getPicList());
         info.setExInfos(mVideoApplication.getExInfos());

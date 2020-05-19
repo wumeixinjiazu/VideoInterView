@@ -6,8 +6,9 @@ package com.videocomm.VideoInterView;
 public class Constant {
     public static final int REQUEST_CODE_CHOOSE_ACT = 10000;
     public static final int RESULT_CODE_PARAMS_ACT = 10001;
-    public static final int RESULT_CODE_Identity_ACT = 10002;
+    public static final int RESULT_CODE_IDENTITY_ACT = 10002;
     public static final int RESULT_CODE_Record_Result_ACT = 10003;
+    public static final int RESULT_CODE_DETECT_ACT = 10004;
 
     public static final int CAMERA_REQUEST_CODE = 1000;
     public static final int PHOTO_REQUEST_CODE = 1001;

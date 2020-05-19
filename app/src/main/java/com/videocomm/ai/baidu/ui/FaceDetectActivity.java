@@ -6,6 +6,7 @@ package com.videocomm.ai.baidu.ui;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
@@ -15,8 +16,10 @@ import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.Surface;
@@ -40,13 +43,31 @@ import com.baidu.idl.face.platform.utils.APIUtils;
 import com.baidu.idl.face.platform.utils.Base64Utils;
 import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
 import com.videocomm.VideoInterView.R;
+import com.videocomm.VideoInterView.VideoApplication;
+import com.videocomm.VideoInterView.bean.IdentityFaceBean;
+import com.videocomm.VideoInterView.bean.TradeInfo;
+import com.videocomm.VideoInterView.utils.BitmapUtil;
+import com.videocomm.VideoInterView.utils.HttpUtil;
+import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.ai.baidu.ui.utils.CameraUtils;
 import com.videocomm.ai.baidu.ui.utils.VolumeUtils;
 import com.videocomm.ai.baidu.ui.widget.FaceDetectRoundView;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+
+import static com.videocomm.VideoInterView.Constant.FACE_RECO_PIC_PATH;
+import static com.videocomm.VideoInterView.Constant.RESULT_CODE_DETECT_ACT;
+import static com.videocomm.VideoInterView.Constant.RESULT_CODE_IDENTITY_ACT;
 
 /**
  * 人脸采集接口
@@ -97,6 +118,7 @@ public class FaceDetectActivity extends Activity implements
     protected int mPreviewDegree;
     // 监听系统音量广播
     protected BroadcastReceiver mVolumeReceiver;
+    private String tag = this.getClass().getSimpleName();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -494,10 +516,48 @@ public class FaceDetectActivity extends Activity implements
         mImageLayout.removeAllViews();
         for (Map.Entry<String, String> entry : sets) {
             bmp = base64ToBitmap(entry.getValue());
-            ImageView iv = new ImageView(this);
-            iv.setImageBitmap(bmp);
-            mImageLayout.addView(iv, new LinearLayout.LayoutParams(300, 300));
+//            ImageView iv = new ImageView(this);
+//            iv.setImageBitmap(bmp);
+//            mImageLayout.addView(iv, new LinearLayout.LayoutParams(300, 300));
         }
+        BitmapUtil.saveBitmap2file(bmp, FACE_RECO_PIC_PATH);
+        File file = new File(BitmapUtil.getPath(FACE_RECO_PIC_PATH));
+        if (!file.exists()) {
+            return;
+        }
+        HttpUtil.requestFaceReco(file, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d(tag, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String content = response.body().string();
+                Log.d(tag, content);
+                runOnUiThread(() -> {
+                    Intent intent = new Intent();
+                    if (content.contains("人脸识别成功")) {
+                        IdentityFaceBean faceBean = JsonUtil.jsonToBean(content, IdentityFaceBean.class);
+                        IdentityFaceBean.ContentBean faceBeanContent = faceBean.getContent();
+                        //保存数据
+                        List<TradeInfo.PicListBean> picList = new ArrayList<>();
+                        TradeInfo.PicListBean picListBean = new TradeInfo.PicListBean();
+                        picListBean.setPic(faceBeanContent.getFaceImageUrl());
+                        picListBean.setType(17);
+                        picList.add(picListBean);
+                        VideoApplication mApplication = (VideoApplication) getApplication();
+                        mApplication.setPicList(picList);
+
+                        intent.putExtra("isSuccess", true);
+                    } else {
+                        intent.putExtra("isSuccess", false);
+                    }
+                    setResult(RESULT_CODE_DETECT_ACT, intent);
+                    finish();
+                });
+            }
+        });
     }
 
     private static Bitmap base64ToBitmap(String base64Data) {

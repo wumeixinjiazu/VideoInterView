@@ -133,7 +133,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
             case R.id.btn_start_queue://开始排队/转人工服务
                 switch (btnQueue.getText().toString()) {
                     case "转人工客服":
-                        sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_LOCALSCENE, LOCALSCENE_CLOSE);
+
                         sdkUnit.VCOM_LeaveConference();
                         //设置取消临柜模式
                         break;
@@ -329,7 +329,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(tag, "onActivityResult" + requestCode);
-        //排队界面返回 调用加入会议（因为进入到队列需要调用离开会议 此界面可能需要重新录制）
+        //排队界面返回 调用加入会议（因为进入到队列需要调用离开会议，如果排队界面退出回到此界面，此界面可能需要重新录制）
         sdkUnit.VCOM_JoinConference("", "", "");
     }
 
@@ -375,7 +375,6 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         Log.i(tag, "OnReceiveMessage--lpUserCode:" + lpUserCode + "--iMsgType:" + iMsgType + "--lpMessage" + lpMessage);
     }
 
-
     // 发送消息回调（用于发送回执）
     @Override
     public void OnSendMessage(int iMsgId, int iErrorCode) {
@@ -398,7 +397,6 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     @Override
     public void OnQueueEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnQueueEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
-
     }
 
     @Override

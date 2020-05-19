@@ -50,7 +50,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.videocomm.VideoInterView.Constant.RESULT_CODE_Identity_ACT;
+import static com.videocomm.VideoInterView.Constant.RESULT_CODE_IDENTITY_ACT;
 
 /**
  * 活体检测接口
@@ -436,7 +436,7 @@ public class FaceLivenessActivity extends Activity implements
 //            saveImage(base64ImageMap);
             Intent intent = new Intent();
             intent.putExtra("isSuccess", true);
-            setResult(RESULT_CODE_Identity_ACT, intent);
+            setResult(RESULT_CODE_IDENTITY_ACT, intent);
             finish();
         }
         Ast.getInstance().faceHit("liveness");
@@ -538,7 +538,7 @@ public class FaceLivenessActivity extends Activity implements
     public void onBackPressed() {
         Intent intent = new Intent();
         intent.putExtra("isSuccess", false);
-        setResult(RESULT_CODE_Identity_ACT, intent);
+        setResult(RESULT_CODE_IDENTITY_ACT, intent);
         finish();
     }
 }

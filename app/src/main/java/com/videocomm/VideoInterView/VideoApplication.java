@@ -19,7 +19,7 @@ public class VideoApplication extends Application {
     private String userCode;
     private String idcardNum;
     private String userPhone;
-    private String userName;
+    private String userName = "";
     private int userSex;
     private String idcardAddress;
     private String idcardBirth;

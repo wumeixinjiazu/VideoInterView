@@ -43,14 +43,12 @@ public class PicChooseFragment extends BaseDlgFragment implements View.OnClickLi
     //用来判断照相机拍照是正面还是背面
     private boolean isFront;
 
-    public static PicChooseFragment newInstance(boolean isFront) {
-        PicChooseFragment fragment = new PicChooseFragment();
-        Bundle bundle = new Bundle();
-        bundle.putBoolean("isFront", isFront);
-        fragment.setArguments(bundle);
-        return fragment;
+    //推荐使用setArguments
+    public static PicChooseFragment newInstance() {
+        return new PicChooseFragment();
     }
 
+    //不能设置为private
     public PicChooseFragment() {
 
     }

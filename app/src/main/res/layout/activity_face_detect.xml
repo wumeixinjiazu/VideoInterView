@@ -102,6 +102,6 @@
             android:id="@+id/detect_result_image_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"></LinearLayout>
+            android:orientation="horizontal" />
     </HorizontalScrollView>
 </RelativeLayout>

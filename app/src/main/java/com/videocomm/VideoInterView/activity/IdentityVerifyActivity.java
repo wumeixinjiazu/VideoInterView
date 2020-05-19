@@ -29,9 +29,9 @@ import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.IdCardFrontBean;
 import com.videocomm.VideoInterView.bean.IdCardBackBean;
-import com.videocomm.VideoInterView.bean.IdentityFaceBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.dlgfragment.PicChooseFragment;
+import com.videocomm.VideoInterView.fragment.FaceDetectFragment;
 import com.videocomm.VideoInterView.fragment.FaceRecoFragment;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
 import com.videocomm.VideoInterView.utils.DialogUtil;
@@ -42,6 +42,7 @@ import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
 import com.videocomm.VideoInterView.view.ProgressCustom;
+import com.videocomm.ai.baidu.ui.FaceDetectActivity;
 import com.videocomm.ai.baidu.ui.FaceLivenessActivity;
 
 import java.io.File;
@@ -58,7 +59,8 @@ import static com.videocomm.VideoInterView.Constant.OPEN_CAMERA;
 import static com.videocomm.VideoInterView.Constant.PHOTO_BACK_PATH;
 import static com.videocomm.VideoInterView.Constant.PHOTO_FRONT_PATH;
 import static com.videocomm.VideoInterView.Constant.PHOTO_REQUEST_CODE;
-import static com.videocomm.VideoInterView.Constant.RESULT_CODE_Identity_ACT;
+import static com.videocomm.VideoInterView.Constant.RESULT_CODE_DETECT_ACT;
+import static com.videocomm.VideoInterView.Constant.RESULT_CODE_IDENTITY_ACT;
 import static com.videocomm.VideoInterView.Constant.TAKE_PIC_BACK_PATH;
 import static com.videocomm.VideoInterView.Constant.TAKE_PIC_FRONT_PATH;
 
@@ -122,7 +124,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     private VideoApplication mApplication;
     private ImageView ivIdentityState;
     private TextView tvIdentityState;
-    private FaceRecoFragment faceRecoFragment;
+    private FaceDetectFragment detectFragment;
 
     static class IdentityHandler extends Handler {
 
@@ -182,6 +184,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         mTitleLayoutManager.setTitle(R.string.identity_check);
         initView();
         initProgress();
+        initLib();
     }
 
     /**
@@ -246,6 +249,8 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         stepThree = findViewById(R.id.step_three);
         ivIdentityState = findViewById(R.id.iv_identity_state);
         tvIdentityState = findViewById(R.id.tv_identity_state);
+
+
     }
 
     @Override
@@ -267,21 +272,89 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
             case R.id.iv_idcard_front_two:
             case R.id.iv_idcard_front_three:
                 flag = true;
-                PicChooseFragment.newInstance(flag).show(getSupportFragmentManager(), "front");
+                selectFunction(flag);
                 break;
             case R.id.iv_idcard_back_one:
             case R.id.iv_idcard_back_two:
             case R.id.iv_idcard_back_three:
                 flag = false;
-                PicChooseFragment.newInstance(flag).show(getSupportFragmentManager(), "back");
+                selectFunction(flag);
                 break;
             case R.id.btn_start_recognition://开始人脸识别
                 stepTwo.setVisibility(View.GONE);
-                faceRecoFragment = new FaceRecoFragment(mApplication);
-                getSupportFragmentManager().beginTransaction().add(R.id.content, faceRecoFragment).show(faceRecoFragment).commit();
+                setFaceConfig();
+                detectFragment = new FaceDetectFragment(mApplication);
+                getSupportFragmentManager().beginTransaction().add(R.id.content, detectFragment).show(detectFragment).commit();
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * 初始化SDK
+     */
+    private void initLib() {
+        // 应用上下文
+        // 申请License取得的APPID
+        // assets目录下License文件名
+        FaceSDKManager.getInstance().initialize(this, Config.licenseID, Config.licenseFileName);
+        // setFaceConfig();
+    }
+
+    private void setFaceConfig() {
+        FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
+        // SDK初始化已经设置完默认参数（推荐参数），您也根据实际需求进行数值调整
+        //设置活体动作
+        List<LivenessTypeEnum> actionList = new ArrayList<>();
+        actionList.add(LivenessTypeEnum.Eye);
+        actionList.add(LivenessTypeEnum.Mouth);
+        actionList.add(LivenessTypeEnum.HeadDown);
+        config.setLivenessTypeList(actionList);
+        //设置活体动作是否随机
+        config.setLivenessRandom(false);
+        //设置模糊度范围 推荐小于0.7
+        config.setBlurnessValue(FaceEnvironment.VALUE_BLURNESS);
+        //设置光照范围
+        config.setBrightnessValue(FaceEnvironment.VALUE_BRIGHTNESS);
+        //设置裁剪人脸大小
+        config.setCropFaceValue(FaceEnvironment.VALUE_CROP_FACE_SIZE);
+        //设置人脸yaw，pitch，row 角度，范围（-45.，45）
+        config.setHeadYawValue(FaceEnvironment.VALUE_HEAD_YAW);
+        config.setHeadPitchValue(FaceEnvironment.VALUE_HEAD_PITCH);
+        config.setHeadRollValue(FaceEnvironment.VALUE_HEAD_ROLL);
+        //最小检测人脸（在图片人脸能够被检测到最小值）80-200，越小越耗性能 推荐120-200
+        config.setMinFaceSize(FaceEnvironment.VALUE_MIN_FACE_SIZE);
+        //
+        config.setNotFaceValue(FaceEnvironment.VALUE_NOT_FACE_THRESHOLD);
+        //设置人脸遮挡范围（0-1）推荐小于0.5
+        config.setOcclusionValue(FaceEnvironment.VALUE_OCCLUSION);
+        //设置是否检测人脸质量
+        config.setCheckFaceQuality(true);
+        //设置人脸检测使用线程数
+        config.setFaceDecodeNumberOfThreads(2);
+        //设置是否开启提示音
+        config.setSound(true);
+
+        //设置参数生效
+        FaceSDKManager.getInstance().setFaceConfig(config);
+    }
+
+    /**
+     * 选择功能
+     *
+     * @param flag 区分身份证是正面还是反面
+     */
+    private void selectFunction(boolean flag) {
+        //推荐使用setArguments 来传递参数
+        PicChooseFragment fragment = PicChooseFragment.newInstance();
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("isFront", flag);
+        fragment.setArguments(bundle);
+        if (flag) {
+            fragment.show(getSupportFragmentManager(), "front");
+        } else {
+            fragment.show(getSupportFragmentManager(), "back");
         }
     }
 
@@ -319,7 +392,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
             progressCustom.setSelectIndex(1);
             stepTwo.setVisibility(View.VISIBLE);
             tvFaceName.setText(Html.fromHtml(getResources().getString(R.string.black_red_black, "请确保是 ", StringUtil.replaceStr(mApplication.getUserName()), " 本人操作")));
-
             stepOneTwo.setVisibility(View.GONE);
         }
     }
@@ -328,13 +400,12 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
      * 下一步 根据活体检测是否打开
      */
     public void next() {
-        getSupportFragmentManager().beginTransaction().remove(faceRecoFragment).commit();
+        getSupportFragmentManager().beginTransaction().remove(detectFragment).commit();
 
         boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
         if (livingState) {
             //开始活体检测
-            initAI();
-            startActivityForResult(new Intent(this, FaceLivenessActivity.class), RESULT_CODE_Identity_ACT);
+            initLivenessAI();
         } else {
             //验证成功
             stepThree.setVisibility(View.VISIBLE);
@@ -346,35 +417,13 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     /**
      * 初始化AI
      */
-    private void initAI() {
+    private void initLivenessAI() {
         boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
         if (!livingState) {
             return;
         }
-        FaceSDKManager.getInstance().initialize(this, Config.licenseID, Config.licenseFileName);
-        FaceConfig config = FaceSDKManager.getInstance().getFaceConfig();
-        List<LivenessTypeEnum> actionList = new ArrayList<>();
-        actionList.add(LivenessTypeEnum.Eye);
-        actionList.add(LivenessTypeEnum.Mouth);
-        actionList.add(LivenessTypeEnum.HeadDown);
-        config.setLivenessTypeList(actionList);
-
-        config.setLivenessRandom(false);
-        config.setBlurnessValue(FaceEnvironment.VALUE_BLURNESS);
-        config.setBrightnessValue(FaceEnvironment.VALUE_BRIGHTNESS);
-        config.setCropFaceValue(FaceEnvironment.VALUE_CROP_FACE_SIZE);
-        config.setHeadPitchValue(FaceEnvironment.VALUE_HEAD_PITCH);
-        config.setHeadRollValue(FaceEnvironment.VALUE_HEAD_ROLL);
-        config.setHeadYawValue(FaceEnvironment.VALUE_HEAD_YAW);
-        config.setMinFaceSize(FaceEnvironment.VALUE_MIN_FACE_SIZE);
-        config.setNotFaceValue(FaceEnvironment.VALUE_NOT_FACE_THRESHOLD);
-        config.setOcclusionValue(FaceEnvironment.VALUE_OCCLUSION);
-
-        config.setCheckFaceQuality(true);
-        config.setFaceDecodeNumberOfThreads(2);
-        config.setSound(true);
-
-        FaceSDKManager.getInstance().setFaceConfig(config);
+        setFaceConfig();
+        startActivityForResult(new Intent(this, FaceLivenessActivity.class), RESULT_CODE_IDENTITY_ACT);
     }
 
     /**
@@ -488,9 +537,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
 
         mApplication.getPicList().add(picListBean);
         mApplication.getPicList().add(picListBean1);
-//        mApplication.setPicList(picList);
-
-
     }
 
     @Override
@@ -551,7 +597,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
 //                    e.printStackTrace();
 //                }
 //                break;
-            case RESULT_CODE_Identity_ACT://活体检测结果返回
+            case RESULT_CODE_IDENTITY_ACT://活体检测结果返回
                 if (data == null) {
                     return;
                 }
@@ -562,6 +608,29 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
                     //验证成功
                     ivIdentityState.setBackgroundResource(R.drawable.ic_result_true);
                     tvIdentityState.setText("活体检测成功");
+                } else {
+                    //活体失败
+                    ivIdentityState.setBackgroundResource(R.drawable.ic_result_false);
+                    tvIdentityState.setText("活体检测失败");
+                    finish();
+                }
+                break;
+            case RESULT_CODE_DETECT_ACT://人脸识别结果返回
+                if (data == null) {
+                    return;
+                }
+                boolean isDetectSuccess = data.getBooleanExtra("isSuccess", false);
+                if (isDetectSuccess) {
+                    boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
+                    if (livingState) {
+                        initLivenessAI();
+                    } else {
+                        //验证成功
+                        stepThree.setVisibility(View.VISIBLE);
+                        ivIdentityState.setBackgroundResource(R.drawable.ic_result_true);
+                        tvIdentityState.setText("验证成功");
+                        progressCustom.setSelectIndex(2);
+                    }
                 } else {
                     //活体失败
                     ivIdentityState.setBackgroundResource(R.drawable.ic_result_false);

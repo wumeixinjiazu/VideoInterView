@@ -62,7 +62,10 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     private void init() {
         Log.d(tag, "init");
+        this.getHolder().setSizeFromLayout();
         this.getHolder().addCallback(this);
+        this.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
         hasSurface = false;
         CameraManager.init();
     }

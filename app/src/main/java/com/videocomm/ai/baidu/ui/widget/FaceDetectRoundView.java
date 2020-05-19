@@ -171,5 +171,4 @@ public class FaceDetectRoundView extends View {
 //        Log.e(TAG, "FaceRoundView getPreviewDetectRect " + pw + "-" + ph + "-" + rect.toString());
         return rect;
     }
-
 }

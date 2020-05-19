@@ -53,7 +53,7 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCEN
 /**
  * @author[wengCJ]
  * @version[创建日期，2020/5/4 0004]
- * @function[功能简介]
+ * @function[功能简介 AI录制界面]
  **/
 public class RecordActivity extends TitleActivity implements VComSDKEvent, View.OnClickListener {
 
@@ -155,8 +155,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
             sdkUnit = VComMediaSDK.GetInstance();
         }
         sdkUnit.SetSDKEvent(this);
-        //设置临柜模式
-        sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_LOCALSCENE, LOCALSCENE_OPEN);
+
         String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "VideoInterView");
 
         sdkUnit.VCOM_SetUserConfig(userPhone, userPhone, "", "", "");

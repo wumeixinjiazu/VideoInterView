@@ -67,15 +67,18 @@ public class CameraCaptureActivity extends BaseActivity implements SurfaceHolder
      */
     private void takePhoto() {
         Log.d(tag, "takePhoto");
-        CameraManager.get().takePicture(null, null, (data, camera) -> {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        CameraManager.get().takePicture(null, null, new Camera.PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] data, Camera camera) {
+                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-            bitmap = Bitmap.createScaledBitmap(bitmap, 400, 300, true);//指定大小压缩
-            isTakePicture = false;
-            Intent intent = new Intent();
-            intent.putExtra("bitmap", bitmap);
-            setResult(RESULT_OK, intent);
-            finish();
+                bitmap = Bitmap.createScaledBitmap(bitmap, 400, 300, true);//指定大小压缩
+                isTakePicture = false;
+                Intent intent = new Intent();
+                intent.putExtra("bitmap", bitmap);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
         });
     }
 

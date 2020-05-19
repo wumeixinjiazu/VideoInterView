@@ -60,8 +60,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
     private VideoApplication mVideoApplication;
     private QueueBean queueBean;
 
-    private boolean isExitQueue = false;
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //自定义标题栏
@@ -136,7 +134,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
             @Override
             public void onClick(View v) {
                 sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_LEAVEQUEUE, "");
-                isExitQueue = true;
                 finish();
             }
         });
@@ -222,17 +219,13 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
     public void OnConferenceResult(int iAction, String lpConfId, int iErrorCode) {
         if (VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_JOIN == iAction) {
             if (iErrorCode == 0) {
-
-                //启动视频通讯(要在加入会议成功后才能开启视频通讯)
-                if (!isExitQueue) {
-                    startVideoActvity();
-                }
             }
         }
     }
 
-    private void startVideoActvity() {
+    private void startVideoActvity(String confid) {
         Intent intent = new Intent();
+        intent.putExtra("confid", confid);
         intent.setClass(this, VideoActivity.class);
         this.startActivity(intent);
         finish();
@@ -368,12 +361,10 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 }
                 //获取会议ID
                 String confid = JsonUtil.jsonToStr(lpUserData, "confid");
-                //加入会议
-                sdkUnit.VCOM_JoinConference(confid, "", "");
+                startVideoActvity(confid);
                 break;
             case VCOM_QUEUEEVENT_HANGUPVIDEO:
                 //用户 坐席挂断
-                isExitQueue = true;
                 finish();
                 break;
             default:
@@ -406,15 +397,18 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
         String backPic = "";
         String facePic = "";
         List<TradeInfo.PicListBean> picList = mVideoApplication.getPicList();
-        for (int i = 0; i < picList.size(); i++) {
-            if (picList.get(i).getType() == 15) {
-                frontPic = picList.get(i).getPic();
-            } else if (picList.get(i).getType() == 16) {
-                backPic = picList.get(i).getPic();
-            } else if (picList.get(i).getType() == 17) {
-                facePic = picList.get(i).getPic();
+        if (picList.size() > 0) {
+            for (int i = 0; i < picList.size(); i++) {
+                if (picList.get(i).getType() == 15) {
+                    frontPic = picList.get(i).getPic();
+                } else if (picList.get(i).getType() == 16) {
+                    backPic = picList.get(i).getPic();
+                } else if (picList.get(i).getType() == 17) {
+                    facePic = picList.get(i).getPic();
+                }
             }
         }
+
         String temp = "{\"picList\":[{\"pic\":\"" + frontPic + "\",\"type\":15},{\"pic\":\"" + backPic + "\",\"type\":16},{\"pic\":\"" + facePic + "\",\"type\":17}]}";
         return temp;
     }

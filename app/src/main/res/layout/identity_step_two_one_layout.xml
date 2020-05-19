@@ -29,7 +29,6 @@
     <!--        app:layout_constraintStart_toStartOf="parent"-->
     <!--        app:layout_constraintTop_toBottomOf="@id/tv_face_rule2" />-->
 
-
     <com.videocomm.VideoInterView.view.FaceScanView
         android:id="@+id/face_scan_view"
         android:layout_width="match_parent"

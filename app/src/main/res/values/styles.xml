@@ -9,11 +9,10 @@
     </style>
 
     <style name="AppTheme.Launcher">
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">@null</item>
-        <item name="android:windowDisablePreview">true</item>
+        <!--        <item name="android:background">@drawable/ic_launch</item>-->
+
     </style>
-<!--    身份验证信息输入框Style-->
+    <!--    身份验证信息输入框Style-->
     <style name="EditTextStyle_identity_info">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>

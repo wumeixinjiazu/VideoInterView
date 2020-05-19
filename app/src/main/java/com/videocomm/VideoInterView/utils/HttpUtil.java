@@ -267,7 +267,7 @@ public class HttpUtil {
      * @param url
      * @param callback
      */
-    public static void requestGet(String url, Callback callback) {
+    private static void requestGet(String url, Callback callback) {
         Log.d(tag, url);
         Request request = new Request.Builder()
                 .url(url)

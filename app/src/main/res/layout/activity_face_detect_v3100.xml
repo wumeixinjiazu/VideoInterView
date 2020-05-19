@@ -8,7 +8,7 @@
     <FrameLayout
         android:id="@+id/detect_surface_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></FrameLayout>
+        android:layout_height="match_parent" />
 
     <com.videocomm.ai.baidu.ui.widget.FaceDetectRoundView
         android:id="@+id/detect_face_round"
@@ -34,8 +34,8 @@
             android:layout_gravity="center_horizontal"
             android:gravity="center"
             android:paddingLeft="12dp"
-            android:paddingRight="12dp"
             android:paddingTop="8dp"
+            android:paddingRight="12dp"
             android:paddingBottom="8dp"
             android:text="@string/detect_face_in"
             android:textColor="#F6A623"
@@ -64,13 +64,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:src="@mipmap/ic_close_ext" />
+        android:src="@mipmap/ic_close_ext"
+        android:visibility="invisible" />
 
     <ImageView
         android:id="@+id/detect_sound"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_margin="20dp"
         android:src="@mipmap/ic_enable_sound_ext" />
 
@@ -81,6 +82,40 @@
         android:src="@mipmap/ic_success"
         android:visibility="invisible" />
 
+    <TextView
+        android:id="@+id/tv_face_rule"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:text="请拿起手机，将正脸放置在取景框内"
+        android:textColor="@color/white"
+        android:textSize="16dp" />
+
+    <TextView
+        android:id="@+id/tv_face_rule2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_face_rule"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:text="注视屏幕3秒钟"
+        android:textColor="#ff0000"
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/tv_face_name_reco"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="100dp"
+        android:text="请确保是 *杰 本人操作"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -90,6 +125,6 @@
             android:id="@+id/detect_result_image_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"></LinearLayout>
+            android:orientation="horizontal" />
     </HorizontalScrollView>
 </RelativeLayout>

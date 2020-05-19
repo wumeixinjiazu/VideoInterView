@@ -49,6 +49,8 @@ import static com.videocomm.VideoInterView.Constant.mIntRemoteVideoClose;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteVideoOpen;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CLIP_MODE_MAXIMUMAREA;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CLIP_MODE_SHRINK;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_EXIT;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_JOIN;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_STOP;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_HANGUPVIDEO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_HANGUPVIDEO;
@@ -61,12 +63,14 @@ public class VideoActivity extends BaseActivity implements
 
     private String tag = getClass().getSimpleName();
 
-    private SurfaceView mSurfaceSelf;
-    private SurfaceView mSurfaceOther;
-    private SurfaceView mSurfaceRemote;
     private Dialog dialog;
     private TextView mTxtTime;
     private Button mBtnEndSession;
+    private SurfaceView mSurfaceSelf;
+    private SurfaceView mSurfaceOther;
+    private LinearLayout llSurfaceOther;
+    private LinearLayout llSurfaceRemote;
+    private SurfaceView mSurfaceRemote;
 
     private Handler mHandler;
     private TimerTask mTimerTask;
@@ -75,13 +79,15 @@ public class VideoActivity extends BaseActivity implements
     private VComMediaSDK sdkUnit;
     private VideoApplication mVideoApplication;
 
+    private int videocallSeconds = 0;
     private int iChannle;//风险播放流（第三人）
-    int videocallSeconds = 0;
-    private String targetUserName = "";
+    private static final int MAX_PEOPLE = 1;//最大人数
+    private int currentPeople = 0;//当前人数
+    private String targetUserName = "";//对方用户名
     private boolean isHasOther = false;//是否有其他人（第三人）
-    public static final int MSG_TIMEUPDATE = 2;
-    private LinearLayout llSurfaceOther;
-    private LinearLayout llSurfaceRemote;
+    private static final int MSG_TIMEUPDATE = 2;//更新消息
+    private boolean isConnectRemote = false;//记录是否连接远程成功(第二个人)
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,25 +96,27 @@ public class VideoActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         //初始化sdk
         initSdk();
-        //初始化布局
-        initView();
-        //初始化视频
-        initVideo();
-        //更新时间
-//        updateTime();
     }
 
     private void initSdk() {
+        String confid = getIntent().getStringExtra("confid");
+        if (confid == null) {
+            finish();
+        }
+
         if (sdkUnit == null) {
             sdkUnit = VComMediaSDK.GetInstance();
         }
         sdkUnit.SetSDKEvent(this);
+        //加入会议
+        sdkUnit.VCOM_JoinConference(confid, "", "");
     }
 
     /**
      * 初始化视频 本地和远程
      */
-    private void initVideo() {
+    private void initLocalVideo() {
+        //设置裁剪
         sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_MAXIMUMAREA);
 
         //设置分辨率 默认 640 * 480
@@ -117,17 +125,26 @@ public class VideoActivity extends BaseActivity implements
         //设置本地视频
         LocalMediaShow mLocalMediaShow = new LocalMediaShow(mSurfaceSelf, mVideoApplication.getUserCode());
         mSurfaceSelf.getHolder().addCallback(mLocalMediaShow);
-
-        //设置远程视频
-        targetUserName = mVideoApplication.getTargetUserName();
-        RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
-        mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
-
-//        RemoteMediaShow mRemoteMediaShow1 = new RemoteMediaShow(mSurfaceOther, targetUserName, 5, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
-//        mSurfaceOther.getHolder().addCallback(mRemoteMediaShow1);
-//        mSurfaceOther.setZOrderOnTop(true);
-
         mSurfaceSelf.setZOrderOnTop(true);
+    }
+
+    /**
+     * 初始化远程视频
+     */
+    private void initRemoteVideo() {
+        if (currentPeople < MAX_PEOPLE) {
+            mSurfaceRemote = new SurfaceView(this);
+            llSurfaceRemote.addView(mSurfaceRemote);
+            //设置远程视频
+            targetUserName = mVideoApplication.getTargetUserName();
+            RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
+            mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
+
+            isConnectRemote = true;
+            currentPeople += 1;
+        }
+
+
     }
 
     /**
@@ -161,8 +178,10 @@ public class VideoActivity extends BaseActivity implements
         //打开自己的音视频
         sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, mIntLocalVideoOpen, mIntLocalAudioOpen, "");
 
-        //打开其他其他用户的音视频
-        sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteVideoOpen, "");
+        if (isConnectRemote) {
+            //打开其他其他用户的音视频
+            sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteVideoOpen, "");
+        }
 
         if (isHasOther) {
             //关闭第三方流
@@ -175,9 +194,10 @@ public class VideoActivity extends BaseActivity implements
         super.onPause();
         //关闭自己的音视频
         sdkUnit.VCOM_CloseLocalMediaStream(mIntLocalChannelIndex, "");
-
-        //关闭其他其他用户的音视频
-        sdkUnit.VCOM_CloseRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, "");
+        if (isConnectRemote) {
+            //关闭其他其他用户的音视频
+            sdkUnit.VCOM_CloseRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, "");
+        }
         if (isHasOther) {
             //关闭第三方流
             sdkUnit.VCOM_CloseRemoteMediaStream(targetUserName, iChannle, "");
@@ -239,13 +259,11 @@ public class VideoActivity extends BaseActivity implements
         llSurfaceOther = findViewById(R.id.ll_surface_other);
         llSurfaceRemote = findViewById(R.id.ll_surface_remote);
         mSurfaceSelf = findViewById(R.id.surface_local);
-        mSurfaceRemote = findViewById(R.id.surface_remote);
         mTxtTime = findViewById(R.id.txt_time);
         mBtnEndSession = findViewById(R.id.btn_endsession);
 
         mBtnEndSession.setOnClickListener(this);
         mSurfaceSelf.setOnClickListener(this);
-        mSurfaceRemote.setOnClickListener(this);
     }
 
 
@@ -256,9 +274,6 @@ public class VideoActivity extends BaseActivity implements
                 break;
             case R.id.surface_local:
 //                switchPreview(R.id.surface_local);
-                break;
-            case R.id.surface_remote:
-//                switchPreview(R.id.surface_remote);
                 break;
             default:
                 break;
@@ -309,6 +324,14 @@ public class VideoActivity extends BaseActivity implements
     @Override
     public void OnConferenceResult(int iAction, String lpConfId, int iErrorCode) {
         Log.i(tag, "OnConferenceResult--iAction:" + iAction + "--lpConfId:" + lpConfId + "--iErrorCode" + iErrorCode);
+        if (iAction == VCOM_CONFERENCE_ACTIONCODE_JOIN) {
+            //自己加入会议成功后 开启本地流
+            //初始化布局
+            initView();
+            //初始化视频
+            initLocalVideo();
+        }
+
     }
 
     /**
@@ -317,6 +340,12 @@ public class VideoActivity extends BaseActivity implements
     @Override
     public void OnConferenceUser(String lpUserCode, int iAction, String lpConfId) {
         Log.i(tag, "OnConferenceUser--lpUserCode:" + lpUserCode + "--iAction:" + iAction + "--lpConfId" + lpConfId);
+        if (iAction == VCOM_CONFERENCE_ACTIONCODE_EXIT) {
+            ToastUtil.show(lpUserCode + "用户已退出");
+        } else if (iAction == VCOM_CONFERENCE_ACTIONCODE_JOIN) {
+            //其他用户进来后 打开远程用户流
+            initRemoteVideo();
+        }
     }
 
     @Override
@@ -351,7 +380,7 @@ public class VideoActivity extends BaseActivity implements
     @Override
     public void OnReceiveMessage(String lpUserCode, int iMsgType, String lpMessage) {
         Log.i(tag, "OnReceiveMessage--lpUserCode:" + lpUserCode + "--iMsgType:" + iMsgType + "--lpMessage" + lpMessage);
-        //接收消息 开始风险播报
+        //接收来自Web端的消息（消息自定义） 开始风险播报
         String status = JsonUtil.jsonToStr(lpMessage, "status");
         if (status.equals("0")) {
             String streamIndex = JsonUtil.jsonToStr(lpMessage, "mStreamIndex");
@@ -526,33 +555,6 @@ public class VideoActivity extends BaseActivity implements
             sdkUnit.VCOM_SetCameraDisplayOriOrientation();
         } else {
             sdkUnit.VCOM_SetCameraDisplayOriOrientation();
-        }
-    }
-
-    private int mLargeViewId = R.id.surface_remote;
-
-    /**
-     * 视频切换
-     *
-     * @param iViewId 控件ID
-     */
-    private void switchPreview(int iViewId) {
-        if (iViewId != mLargeViewId) {
-            SurfaceView smallView = findViewById(iViewId);
-            SurfaceView largeView = findViewById(mLargeViewId);
-            if (smallView != null && largeView != null) {
-                ViewGroup.LayoutParams smallParam = smallView.getLayoutParams();
-                ViewGroup.LayoutParams largeParam = largeView.getLayoutParams();
-
-                largeView.setLayoutParams(smallParam);
-                largeView.setClickable(true);
-                largeView.setZOrderOnTop(true);
-
-                smallView.setLayoutParams(largeParam);
-                smallView.setClickable(false);
-                smallView.setZOrderOnTop(false);
-                mLargeViewId = iViewId;
-            }
         }
     }
 

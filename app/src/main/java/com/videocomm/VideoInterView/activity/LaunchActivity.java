@@ -22,14 +22,10 @@ public class LaunchActivity extends BaseActivity {
             finish();
             return;
         }
-        setContentView(R.layout.activity_launch);
-        setTheme(R.style.AppTheme_Launcher);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startActivity(new Intent(LaunchActivity.this, LoginActivity.class));
-                finish();
-            }
+
+        new Handler().postDelayed(() -> {
+            startActivity(new Intent(LaunchActivity.this, LoginActivity.class));
+            finish();
         },0);
     }
 }

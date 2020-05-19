@@ -71,7 +71,7 @@ public class StringUtil {
      * @return
      */
     public static String replaceStr(String content) {
-        if (content.length() == 0) {
+        if (content == null || content.length() == 0) {
             return "";
         }
         String substring = "";

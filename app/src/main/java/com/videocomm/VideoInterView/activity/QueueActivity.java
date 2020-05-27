@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -21,6 +22,7 @@ import com.videocomm.VideoInterView.bean.QueueStateBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
+import com.videocomm.VideoInterView.utils.LogUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
@@ -28,6 +30,8 @@ import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKDefine;
 import com.videocomm.mediasdk.VComSDKEvent;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -45,9 +49,7 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_QUREYQUEUELEN
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_STARTVIDEO;
 
 public class QueueActivity extends TitleActivity implements VComSDKEvent {
-    private Button quickButton;
     private TextView showTextView;
-    private ImageButton mImgBtnReturn;
     private TextView timeshow;
     private final int TIME_UPDATE = 291;        //Handler发送消息,队列人数的实时更新
 
@@ -64,7 +66,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
         super.onCreate(savedInstanceState);
         //自定义标题栏
         setContentView(R.layout.activity_queue);
-
         //初始化SDK
         initSdk();
         //初始化布局
@@ -111,13 +112,8 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
             }
         }, 0, 1000);
 
-        quickButton = (Button) findViewById(R.id.queue_btn);
-        quickButton.setOnClickListener(new OnClickListener() {
-
-            public void onClick(View v) {
-                alertDialog();
-            }
-        });
+        Button quickButton = (Button) findViewById(R.id.queue_btn);
+        quickButton.setOnClickListener(v -> alertDialog());
     }
 
     /**
@@ -304,26 +300,10 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 queueBean = JsonUtil.jsonToBean(lpUserData, QueueBean.class);
                 if (queueBean != null) {
                     //默认队列
-                    String lpCtrlValue = "{\"queueid\": \"" + 302 + "\"}";
-
-                    switch (mVideoApplication.getSelectBussiness()) {
-                        case "汽车消费办理业务":
-                            lpCtrlValue = "{\"queueid\": \"" + 201 + "\"}";
-                            break;
-                        case "小额消费贷款业务":
-                            lpCtrlValue = "{\"queueid\": \"" + 202 + "\"}";
-                            break;
-                        case "房屋装修贷业务":
-                            lpCtrlValue = "{\"queueid\": \"" + 301 + "\"}";
-                            break;
-                        case "信用卡面签业务业务":
-                            lpCtrlValue = "{\"queueid\": \"" + 302 + "\"}";
-                            break;
-                        default:
-                            break;
-                    }
-                    Log.d(tag, lpCtrlValue);
-                    sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_ENTERQUEUE, lpCtrlValue);//进入队列
+                    //发送数据
+                    String data = generateQueueConfig();
+                    Log.d(tag, data);
+                    sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_ENTERQUEUE, data);//进入队列
                 }
                 break;
             case VCOM_QUEUEEVENT_QUREYQUEUELENGTH:
@@ -346,14 +326,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 mTitleLayoutManager.setTitle("呼叫坐席" + agentId);
                 showTextView.setText("正在呼叫坐席" + agentId + "中...");
                 timeshow.setVisibility(View.INVISIBLE);
-                //发送数据
-                String temp = GenerateConfig(mVideoApplication.getUserCode(), mVideoApplication.getUserName(), SpUtil.getInstance().getString(SpUtil.USERPHONE, "15915658142"),
-                        mVideoApplication.getUserSex(), mVideoApplication.getIdcardAddress(), mVideoApplication.getIdcardNum());
-                Log.d(tag, temp);
-                sdkUnit.VCOM_SendMessage(agentId, 0, temp);
-
-                String picData = GeneratePicConfig();
-                sdkUnit.VCOM_SendMessage(agentId, 1, picData);
                 break;
             case VCOM_QUEUEEVENT_STARTVIDEO:
                 if (iErrorCode != 0) {
@@ -377,22 +349,14 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
 
     }
 
-    /**
-     * 生成Json配置
-     */
-    private String GenerateConfig(String userCode, String userName, String userPhone, int sex, String address, String idcardNum) {
+    //生成队列发送数据
+    private String generateQueueConfig() {
         //生成流水号
         String tradNo = StringUtil.getCurrentFormatTime();
         Random random = new Random();
         int num = random.nextInt(900) + 100;
         tradNo = tradNo + num;
 
-        String temp = "{\"userId\":\"" + userCode + "\",\"username\":\"" + userCode + "\",\"userStr\":{\"content\":[{\"groupData\":[{\"key\":\"userName\",\"name\":\"客户名称\",\"order\":1,\"value\":\"" + userName + "\"},{\"key\":\"userPhone\",\"name\":\"客户手机\",\"order\":2,\"value\":\"" + userPhone + "\"},{\"key\":\"userSex\",\"name\":\"客户性别\",\"order\":3,\"value\":\"" + sex + "\"},{\"key\":\"idcardAddress\",\"name\":\"证件地址\",\"order\":4,\"value\":\"" + address + "\"},{\"key\":\"idcardNum\",\"name\":\"证件号码\",\"order\":5,\"value\":\"" + idcardNum + "\"}],\"groupName\":\"客户信息\",\"groupOrder\":1},{\"groupData\":[{\"key\":\"productNumber\",\"name\":\"产品编号\",\"order\":1,\"value\":\"Product01\"},{\"key\":\"productName\",\"name\":\"产品名称\",\"order\":2,\"value\":\"中国一号资产管理计划\"},{\"key\":\"integratorCode\",\"name\":\"渠道编码\",\"order\":3,\"value\":\"QuDao01\"},{\"key\":\"integratorName\",\"name\":\"渠道名称\",\"order\":4,\"value\":\"自助渠道\"},{\"key\":\"businessCode\",\"name\":\"业务编码\",\"order\":5,\"value\":\"Biz01\"},{\"key\":\"businessName\",\"name\":\"业务类型\",\"order\":6,\"value\":\"双录业务\"}],\"groupName\":\"业务信息\",\"groupOrder\":2}],\"expansion\":\"{\\\"address\\\":\\\"广州市天河区科韵路\\\",\\\"ip\\\":\\\"192.168.0.101\\\"}\",\"from\":\"Android\",\"thirdTradeNo\":\"" + tradNo + "\",\"type\":2}}";
-
-        return temp;
-    }
-
-    private String GeneratePicConfig() {
         String frontPic = "";
         String backPic = "";
         String facePic = "";
@@ -409,8 +373,25 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
             }
         }
 
-        String temp = "{\"picList\":[{\"pic\":\"" + frontPic + "\",\"type\":15},{\"pic\":\"" + backPic + "\",\"type\":16},{\"pic\":\"" + facePic + "\",\"type\":17}]}";
-        return temp;
+        int queueId = mVideoApplication.getQueueId();
+        int sex = mVideoApplication.getUserSex();
+        String userCode = mVideoApplication.getUserCode();
+        String userName = mVideoApplication.getUserName();
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "15915658142");
+        String idCardAddress = mVideoApplication.getIdcardAddress();
+        String idcardNum = mVideoApplication.getIdcardNum();
+        String address = mVideoApplication.getAddress();
+        String addrDesc = mVideoApplication.getAddressDesc();
+        double latitude = mVideoApplication.getLatitude();
+        double longitude = mVideoApplication.getLongitude();
+        String businessData = "{\"userId\":\"" + userCode + "\",\"username\":\"" + userCode + "\",\"userStr\":{\"content\":[{\"groupData\":[{\"key\":\"userName\",\"name\":\"客户名称\",\"order\":1,\"value\":\"" + userName + "\"},{\"key\":\"userPhone\",\"name\":\"客户手机\",\"order\":2,\"value\":\"" + userPhone + "\"},{\"key\":\"userSex\",\"name\":\"客户性别\",\"order\":3,\"value\":\"" + sex + "\"},{\"key\":\"idcardAddress\",\"name\":\"证件地址\",\"order\":4,\"value\":\"" + idCardAddress + "\"},{\"key\":\"idcardNum\",\"name\":\"证件号码\",\"order\":5,\"value\":\"" + idcardNum + "\"}],\"groupName\":\"客户信息\",\"groupOrder\":1},{\"groupData\":[{\"key\":\"productNumber\",\"name\":\"产品编号\",\"order\":1,\"value\":\"Product01\"},{\"key\":\"productName\",\"name\":\"产品名称\",\"order\":2,\"value\":\"中国一号资产管理计划\"},{\"key\":\"integratorCode\",\"name\":\"渠道编码\",\"order\":3,\"value\":\"QuDao01\"},{\"key\":\"integratorName\",\"name\":\"渠道名称\",\"order\":4,\"value\":\"自助渠道\"},{\"key\":\"businessCode\",\"name\":\"业务编码\",\"order\":5,\"value\":\"Biz01\"},{\"key\":\"businessName\",\"name\":\"业务类型\",\"order\":6,\"value\":\"双录业务\"}],\"groupName\":\"业务信息\",\"groupOrder\":2}],\"expansion\":\"{\\\"address\\\":\\\"" + address + "\\\",\\\"ip\\\":\\\"192.168.0.101\\\"}\",\"from\":\"Android\",\"thirdTradeNo\":\"" + tradNo + "\",\"type\":2,\"picList\":[{\"pic\":\"" + frontPic + "\",\"type\":15},{\"pic\":\"" + backPic + "\",\"type\":16},{\"pic\":\"" + facePic + "\",\"type\":17}],\"exInfos\":[{\"exKey\":\"address\",\"exValue\":\"" + address + "\",\"description\":\"" + addrDesc + "\"},{\"exKey\":\"ip\",\"exValue\":\"192.168.0.101\",\"description\":\"\"},{\"exKey\":\"latitude\",\"exValue\":\"" + latitude + "\",\"description\":\"\"},{\"exKey\":\"longitude\",\"exValue\":\"" + longitude + "\",\"description\":\"\"}]}}";
+        try {
+            businessData = Base64.encodeToString(businessData.getBytes("UTF-8"), Base64.NO_WRAP);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String resultData = "{\"queueid\":\"" + queueId + "\",\"business\":\"" + businessData + "\"}";
+        return resultData;
     }
 
 }

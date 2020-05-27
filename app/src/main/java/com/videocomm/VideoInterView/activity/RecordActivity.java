@@ -46,6 +46,7 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_LOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_PLAY;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_STOP;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_UNLOAD;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_LOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_STOP;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_GUID;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCENE;
@@ -77,13 +78,13 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     private RecordHandler mHandler = new RecordHandler();
     private static final int HANDLER_RECORDING = 1000;
     private String ASRUuid;//asr 唯一识别码
-    private String TTSUuid;//tts唯一识别码
     private boolean isSelfExit = false;//记录是否自己退出
 
     private static final int ASK_STATE_ONE = 1;
     private static final int ASK_STATE_TWO = 2;
     private static final int ASK_STATE_THREE = 3;
     private int ASK_STATE = ASK_STATE_ONE;//记录现在提问第几个问题
+    private Integer mediafileid;//SDK播放音频ID
 
     class RecordHandler extends Handler {
         @Override
@@ -130,7 +131,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         btnRecord.setOnClickListener(this);
         //获取唯一识别号
         ASRUuid = sdkUnit.VCOM_GetSDKParamString(7);
-        TTSUuid = sdkUnit.VCOM_GetSDKParamString(7);
     }
 
     /**
@@ -276,6 +276,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     // 媒体文件控制回调
     @Override
     public void OnMediaFileControlEvent(int iMediaFileId, int iEventType, int iParam, String lpParam) {
+        Log.i(tag, "OnMediaFileControlEvent--iMediaFileId:" + iMediaFileId + "--iEventType:" + iEventType + "--iParam" + iParam + "--lpParam" + lpParam);
+
         if (iEventType == VCOM_MEDIAFILE_EVENT_STOP) {
             //播放音频结束  停止音频  卸载音频
             sdkUnit.VCOM_MediaFileControl(VCOM_MEDIAFILE_CMD_STOP, iMediaFileId, null);
@@ -285,12 +287,16 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
             Log.d(tag, asr);
             sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_ASR_AWORD, asr);
 
-            //4秒后结束ASR识别
+            //3秒后结束ASR识别
             new Handler().postDelayed(() -> {
                 String asr1 = GenerateASRConfig(mVideoApplication.getUserCode(), 2);
                 Log.d(tag, asr1);
                 sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_ASR_AWORD, asr1);
             }, 3000);
+
+        } else if (iEventType == VCOM_MEDIAFILE_EVENT_LOAD) {
+            String playResult = sdkUnit.VCOM_MediaFileControl(VCOM_MEDIAFILE_CMD_PLAY, mediafileid, "");
+            LogUtil.e(tag, "playResult:" + playResult);
         }
     }
 
@@ -310,8 +316,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     @Override
     public void OnAIAbilityEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnAIAbilityEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
-        LogUtil.e(tag, "lpUserData:" + lpUserData);
-
+//        sdkUnit.VCOM_StopRecord(iRecordId);
+//        isSuccess = false;
         switch (iEventType) {
             case VCOM_AIABILITY_EVENT_PROCESSING:
                 break;
@@ -319,34 +325,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                 String taskid = JsonUtil.jsonToStr(lpUserData, "taskid");
                 Log.d(tag, "taskid:" + taskid);
 
-                if (taskid.equalsIgnoreCase(TTSUuid)) {
-                    String baseAudio = JsonUtil.jsonToStr(lpUserData, "audio");
-                    LogUtil.e(tag, "baseAudio:" + baseAudio);
-                    if (baseAudio != null) {
-                        //加载音频文件控制
-                        String loadResult = sdkUnit.VCOM_MediaFileControl(VCOM_MEDIAFILE_CMD_LOAD, 0, GeneratePlayConfig(baseAudio));
-                        if (loadResult == null) {
-                            return;
-                        }
-                        LogUtil.e(tag, "loadResult:" + loadResult);
-                        Log.d(tag, "loadResult:" + loadResult);
-                        String resultCode = JsonUtil.jsonToStr(loadResult, "errorcode");
-                        String resultMediafileid = JsonUtil.jsonToStr(loadResult, "mediafileid");
-                        Integer mediafileid = 0;
-                        if (!resultCode.equals("0")) {
-                            return;
-                        }
-                        if (!resultMediafileid.equals("")) {
-                            mediafileid = Integer.parseInt(resultMediafileid.toString().trim());
-                        }
-                        Log.d(tag, "mediafileid:" + mediafileid);
-                        if ("0".equalsIgnoreCase(resultCode)) {
-                            //播放音频文件
-                            String playResult = sdkUnit.VCOM_MediaFileControl(VCOM_MEDIAFILE_CMD_PLAY, mediafileid, "");
-                            LogUtil.e(tag, "playResult:" + playResult);
-                        }
-                    }
-                } else if (taskid.equalsIgnoreCase(ASRUuid)) {
+                if (taskid.equalsIgnoreCase(ASRUuid)) {
                     String result = JsonUtil.jsonToStr(lpUserData, "result");
                     Log.d(tag, "result:" + result);
                     //回答不通过条件
@@ -379,11 +358,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                 if (ansResult) {
                     //成功  切换到第二问
                     ASK_STATE = ASK_STATE_TWO;
-                    tvQuestion.setText(getString(R.string.ai_question_two));
-                    String tts = GenerateTTSConfig(getString(R.string.ai_question_two));
                     ansErrorNum = 0;
-                    Log.d(tag, tts);
-                    sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_TTS, tts);
+                    playTTS(getString(R.string.ai_question_two));
                 } else {
                     //回答错误
                     ToastUtil.show("回答错误，请重新回答");
@@ -394,10 +370,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                         isSuccess = false;
                         sdkUnit.VCOM_StopRecord(iRecordId);
                     } else {
-                        tvQuestion.setText(getString(R.string.ai_question_one));
-                        String tts = GenerateTTSConfig(getString(R.string.ai_question_one));
-                        Log.d(tag, tts);
-                        sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_TTS, tts);
+                        playTTS(getString(R.string.ai_question_one));
                     }
                 }
                 break;
@@ -405,25 +378,18 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                 if (ansResult) {
                     //成功  切换到第三问
                     ASK_STATE = ASK_STATE_THREE;
-                    tvQuestion.setText(getString(R.string.ai_question_three));
-                    String tts = GenerateTTSConfig(getString(R.string.ai_question_three));
                     ansErrorNum = 0;
-                    Log.d(tag, tts);
-                    sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_TTS, tts);
+                    playTTS(getString(R.string.ai_question_three));
                 } else {
                     //回答错误
                     ToastUtil.show("回答错误，请重新回答");
-
                     ansErrorNum++;
                     if (ansErrorNum == 3) {
                         ansErrorNum = 0;
                         isSuccess = false;
                         sdkUnit.VCOM_StopRecord(iRecordId);
                     } else {
-                        tvQuestion.setText(getString(R.string.ai_question_two));
-                        String tts = GenerateTTSConfig(getString(R.string.ai_question_two));
-                        Log.d(tag, tts);
-                        sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_TTS, tts);
+                        playTTS(getString(R.string.ai_question_two));
                     }
                 }
                 break;
@@ -437,17 +403,13 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                 } else {
                     //回答错误
                     ToastUtil.show("回答错误，请重新回答");
-
                     ansErrorNum++;
                     if (ansErrorNum == 3) {
                         ansErrorNum = 0;
                         isSuccess = false;
                         sdkUnit.VCOM_StopRecord(iRecordId);
                     } else {
-                        tvQuestion.setText(getString(R.string.ai_question_three));
-                        String tts = GenerateTTSConfig(getString(R.string.ai_question_three));
-                        Log.d(tag, tts);
-                        sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_TTS, tts);
+                        playTTS(getString(R.string.ai_question_three));
                     }
                 }
                 break;
@@ -491,12 +453,29 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                 mHandler.sendEmptyMessage(HANDLER_RECORDING);//开始闪动
 
                 //开始语音合成 播放问题
-                tvQuestion.setText(getString(R.string.ai_question_one));
-                String tts = GenerateTTSConfig(getString(R.string.ai_question_one));
-                Log.d(tag, tts);
-                sdkUnit.VCOM_AIAbilityControl(VCOM_AIABILITY_TTS, tts);
+                playTTS(getString(R.string.ai_question_one));
                 isRecording = true;
             }
+        }
+    }
+
+    /**
+     * 播放TTS
+     */
+    private void playTTS(String text) {
+        tvQuestion.setText(text);
+        String tts = GenerateLoadConfig(text);
+        Log.d(tag, tts);
+        String loadResult = sdkUnit.VCOM_MediaFileControl(VCOM_MEDIAFILE_CMD_LOAD, 0, tts);
+        Log.d(tag, loadResult);
+        String resultCode = JsonUtil.jsonToStr(loadResult, "errorcode");
+        String resultMediafileid = JsonUtil.jsonToStr(loadResult, "mediafileid");
+        mediafileid = 0;
+        if (!resultCode.equals("0")) {
+            return;
+        }
+        if (!resultMediafileid.equals("")) {
+            mediafileid = Integer.parseInt(resultMediafileid.trim());
         }
     }
 
@@ -509,19 +488,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     private String GenerateRecordConfig(String strUserCode) {
         return "{\"audio\":\"true\", \"video\":\"true\", \"bitrate\":0, \"filename\":\"vcomrecord\", \"format\":\"mp4\", \"width\":640, \"height\":480, " +
                 "\"mode\":\"one\", \"rewrite\":\"false\", \"serverrecord\":\"false\",\"layout\":[{\"channelindex\":0, \"index\":1, \"usercode\":\"" + strUserCode + "\"}]}";
-    }
-
-    /**
-     * 生成TTS JSON 配置
-     *
-     * @param text
-     * @return
-     */
-    private String GenerateTTSConfig(String text) {
-        return "{\n" +
-                "\"taskid\":\"" + TTSUuid + "\",\n" +
-                "\"text\": \"" + text + "\"\n" +
-                "}";
     }
 
     /**
@@ -540,13 +506,13 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     }
 
     /**
-     * 播放Json配置
+     * 加载TTS Json配置
      *
-     * @param baseStr
+     * @param text
      * @return
      */
-    private String GeneratePlayConfig(String baseStr) {
-        String playJson = "{\"channelindex\":1,\"base64data\":\"" + baseStr + "\"}";
+    private String GenerateLoadConfig(String text) {
+        String playJson = "{\"channelindex\":5, \"text\":\"" + text + "\"}";
         return playJson;
     }
 

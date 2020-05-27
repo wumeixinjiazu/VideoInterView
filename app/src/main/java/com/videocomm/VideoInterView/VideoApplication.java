@@ -1,9 +1,13 @@
 package com.videocomm.VideoInterView;
 
 import android.app.Application;
+import android.app.Service;
+import android.os.Vibrator;
 
+import com.baidu.location.BDLocation;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.videocomm.VideoInterView.bean.TradeInfo;
+import com.videocomm.VideoInterView.map.LocationService;
 import com.videocomm.VideoInterView.utils.AppUtil;
 import com.videocomm.mediasdk.VComMediaSDK;
 
@@ -37,6 +41,60 @@ public class VideoApplication extends Application {
     private String recordPath;
     private String selectBussiness; //选择的办理业务
     private String targetUserName = "";        //对方用户名字
+    private String selectCode;//选择的Code 用来获取对应的队列ID
+    private int queueId;//队列ID
+    private double latitude;//纬度
+    private double longitude;//经度
+    private String address;//办理地址
+    private String addressDesc;//详细地址
+
+    public String getAddressDesc() {
+        return addressDesc;
+    }
+
+    public void setAddressDesc(String addressDesc) {
+        this.addressDesc = addressDesc;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public int getQueueId() {
+        return queueId;
+    }
+
+    public void setQueueId(int queueId) {
+        this.queueId = queueId;
+    }
+
+    public String getSelectCode() {
+        return selectCode;
+    }
+
+    public void setSelectCode(String selectCode) {
+        this.selectCode = selectCode;
+    }
 
     public String getTargetUserName() {
         return targetUserName;
@@ -339,6 +397,5 @@ public class VideoApplication extends Application {
         CrashReport.initCrashReport(getApplicationContext(), "25839b668f", true);
 
         VComMediaSDK.GetInstance().VCOM_Initialize(0, "", getApplicationContext());//Content最好传 getApplicationContext
-
     }
 }

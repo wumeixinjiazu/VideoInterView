@@ -92,5 +92,5 @@ dependencies {
     implementation 'com.tencent.bugly:nativecrashreport:3.7.1'
 
     implementation project(path: ':faceplatform')
-
+    implementation files('libs/BaiduLBS_Android.jar')
 }

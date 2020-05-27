@@ -104,7 +104,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
             tvSuccess.setVisibility(View.GONE);
         }
 
-        getVideoFirstFrame("");
+        getVideoFirstFrame(mVideoApplication.getRecordPath());
     }
 
     private void initPlay() {
@@ -133,7 +133,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
             case R.id.btn_start_queue://开始排队/转人工服务
                 switch (btnQueue.getText().toString()) {
                     case "转人工客服":
-
+                        fileUploadToAgent();
                         sdkUnit.VCOM_LeaveConference();
                         //设置取消临柜模式
                         break;
@@ -151,6 +151,29 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * 上传文件到坐席
+     */
+    private void fileUploadToAgent() {
+        String recordPath = mVideoApplication.getRecordPath();
+        File file = new File(recordPath);
+        if (file.exists()) {
+            //请求上传文件
+            HttpUtil.requestUploadFile(file, new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String content = response.body().string();
+                    Log.d(tag, content);
+                }
+            });
         }
     }
 

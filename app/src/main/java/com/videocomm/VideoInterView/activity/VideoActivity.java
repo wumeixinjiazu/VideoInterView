@@ -31,6 +31,7 @@ import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
+import com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview;
 import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKEvent;
 
@@ -68,9 +69,9 @@ public class VideoActivity extends BaseActivity implements
     private Button mBtnEndSession;
     private SurfaceView mSurfaceSelf;
     private SurfaceView mSurfaceOther;
+    private SurfaceView mSurfaceRemote;
     private LinearLayout llSurfaceOther;
     private LinearLayout llSurfaceRemote;
-    private SurfaceView mSurfaceRemote;
 
     private Handler mHandler;
     private TimerTask mTimerTask;
@@ -573,6 +574,48 @@ public class VideoActivity extends BaseActivity implements
         otherLayout.setLayoutParams(remoteLayoutParams);
 
         mSurfaceRemote.setZOrderOnTop(true);
+    }
+
+    private int mLargeViewId = R.id.ll_surface_remote;
+
+    /**
+     * 视频切换
+     *
+     * @param iViewId 控件ID
+     */
+    private void switchPreview(int iViewId) {
+        if (iViewId != mLargeViewId) {
+            LinearLayout smallView = findViewById(iViewId);
+            LinearLayout largeView = findViewById(mLargeViewId);
+            if (smallView != null && largeView != null) {
+                ViewGroup.LayoutParams smallParam = smallView.getLayoutParams();
+                ViewGroup.LayoutParams largeParam = largeView.getLayoutParams();
+
+                mLargeViewId = iViewId;
+
+                largeView.setLayoutParams(smallParam);
+                largeView.setClickable(true);
+
+                smallView.setLayoutParams(largeParam);
+                smallView.setClickable(false);
+
+                if (iViewId == R.id.ll_surface_remote) {
+//                    llLocal.getChildAt(0).setTranslationX(0);
+
+                    if (mSurfaceRemote != null) {
+                        mSurfaceRemote.setZOrderOnTop(false);
+                        mSurfaceSelf.setZOrderOnTop(true);
+                        mSurfaceSelf.setZOrderMediaOverlay(true);
+                    }
+                } else {
+                    if (mSurfaceRemote != null) {
+                        mSurfaceRemote.setZOrderOnTop(true);
+                        mSurfaceRemote.setZOrderMediaOverlay(true);
+                        mSurfaceSelf.setZOrderOnTop(false);
+                    }
+                }
+            }
+        }
     }
 
 

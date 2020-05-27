@@ -43,14 +43,6 @@ public class HttpUtil {
      */
     private static final String OCR_URL_HOST = "http://interview.videocomm.net/v1/client/ocr/";
     private static final String OCR_URL_PATH = "/uploadIdCard";
-    private static final String OCR_REAL_URL = OCR_URL_HOST + OCR_URL_PATH;
-
-    /**
-     * Header信息
-     */
-    private static final String APPCODE = "dab61d9eef3b4afd8b1f7a0737e7d3ec";
-    private static final String OCR_URL_HEADER_NAME = "Authorization";
-    private static final String OCR_URL_HEADER_VALUE = "APPCODE dab61d9eef3b4afd8b1f7a0737e7d3ec";//注意中间有空格
 
     /**
      * 身份证图片Size 表示  face:正面  back:背面
@@ -58,58 +50,25 @@ public class HttpUtil {
     public static final String OCR_SIZE_FACE = "front";
     public static final String OCR_SIZE_BACK = "back";
 
-    /**
-     * 活体检测动作 张嘴 眨眼 摇头
-     */
-    public static final String LIVING_ACTION_MOUTH = "openMouth";
-    public static final String LIVING_ACTION_EYE = "blink";
-    public static final String LIVING_ACTION_HEAD = "shakeHead";
-
     private static final String URL_BASE = "http://interview.videocomm.net";
     //图形验证码接口 GET
-    //示例：/captcha/getNumImageCaptcha?code=0.3223
-    public static final String GET_IMAGE_CAPTCHA = URL_BASE + "/captcha/getNumImageCaptcha?code=0.3223";
+    private static final String GET_IMAGE_CAPTCHA = URL_BASE + "/captcha/getNumImageCaptcha?code=0.3223";
     //发送信息给用户接口 GET
-    //示例：/captcha/sendSMSForUserLogin?phoneNumber=13570125462&imageCaptcha=1252
     private static final String SEND_SMS_USER_LOGIN = URL_BASE + "/captcha/sendSMSForUserLogin";
-    //登陆接口 POST
-    //示例：/v1/client/login?phoneNumber=13570125462&imageCaptcha=1252&loginType=0&smsCaptcha=688826
+    //接口 POST
     private static final String REQUEST_LOGIN = URL_BASE + "/v1/client/login";
     private static final String REQUEST_NETWORK = URL_BASE + "/v1/client/businessOffice/getlistByCity";
     private static final String REQUEST_FACE_RECO = URL_BASE + "/v1/client/face/detectFace";
     private static final String REQUEST_LIVING_DETECTION = URL_BASE + "/v1/client/face/livingDetection";
     private static final String REQUEST_SEND_TRADEINFO = URL_BASE + "/v1/client/trade/saveTradeInfo";
     private static final String REQUEST_UPLOAD_FILE = URL_BASE + "/v1/client/uploadFile";
+    private static final String REQUEST_GET_PRODUCTS = URL_BASE + "/v1/client/getProducts";
+    private static final String REQUEST_GET_ROUTE = URL_BASE + "/v1/client/getRoute";
+    private static final String REQUEST_FILE_DOWNLOAD = URL_BASE + "/file/download";
     private static OkHttpClient okHttpClient;
 
     static {
 
-    }
-
-    /**
-     * OCR请求
-     *
-     * @param bitmap
-     * @param size
-     */
-    public static void requestOcrPost(Bitmap bitmap, String size, File file, Callback callback) {
-        MediaType mediaType = MediaType.parse("multipart/form-data");
-        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
-        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
-        RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
-        String body2 = "{" +
-                "\t\"token\":  \"" + token + "\",\n" +
-                "\t\"phoneNumber\":  \"" + userPhone + "\",\n" +
-                "\t\"image\":  \"" + base64ToNoHeaderBase64(bitmapToBase64(bitmap)) + "\",\n" +
-                "}";
-        Log.d(tag, OCR_URL_HOST + size + OCR_URL_PATH);
-        Log.d(tag, body2);
-        Request request = new Request.Builder()
-                .url(OCR_URL_HOST + size + OCR_URL_PATH)
-                .post(RequestBody.create(mediaType, body2))
-                .build();
-        OkHttpClient okHttpClient = new OkHttpClient();
-        okHttpClient.newCall(request).enqueue(callback);
     }
 
     /**
@@ -120,7 +79,6 @@ public class HttpUtil {
      * @param callback
      */
     public static void requestOcrPost(String size, File file, Callback callback) {
-        MediaType mediaType = MediaType.parse("multipart/form-data");
         String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
         String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
 
@@ -157,7 +115,6 @@ public class HttpUtil {
      * @param callback
      */
     public static void requestSendSMSForUser(final String phoneNumber, final String imageCapcha, String ssionId, Callback callback) {
-//        requestGet(SEND_SMS_USER_LOGIN + "?phoneNumber=" + phoneNumber + "&imageCaptcha=" + imageCapcha, callback);
         Request request = new Request.Builder()
                 .url(SEND_SMS_USER_LOGIN + "?phoneNumber=" + phoneNumber + "&imageCaptcha=" + imageCapcha)
                 .addHeader("Cookie", ssionId)
@@ -251,6 +208,50 @@ public class HttpUtil {
         requestPost(REQUEST_UPLOAD_FILE, requestBody, callback);
     }
 
+    //获取产品列表
+    public static void requestGetProducts(Callback callback) {
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+        String data = "{\"status\":0}";
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("token", token)
+                .addFormDataPart("phoneNumber", userPhone)
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("data", data)
+                .build();
+
+        requestPost(REQUEST_GET_PRODUCTS, requestBody, callback);
+    }
+
+    //获取队列ID
+    public static void requestGetRoute(String productCode, Callback callback) {
+        String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
+        String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+        String data = "{\"businessCode\":\"Biz01\",\"integratorCode\":\"QuDao01\",\"productCode\":\"" + productCode + "\"}";
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("token", token)
+                .addFormDataPart("phoneNumber", userPhone)
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("data", data)
+                .build();
+
+        requestPost(REQUEST_GET_ROUTE, requestBody, callback);
+    }
+
+    //下载图片
+    public static void requestFileDownload(String path, Callback callback) {
+        String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
+        RequestBody requestBody = new MultipartBody.Builder()
+                .addFormDataPart("appId", appid)
+                .addFormDataPart("path", path)
+                .build();
+
+        requestPost(REQUEST_FILE_DOWNLOAD, requestBody, callback);
+    }
+
     private static void requestPost(String url, RequestBody body, Callback callback) {
         Request request = new Request.Builder()
                 .url(url)
@@ -268,7 +269,6 @@ public class HttpUtil {
      * @param callback
      */
     private static void requestGet(String url, Callback callback) {
-        Log.d(tag, url);
         Request request = new Request.Builder()
                 .url(url)
                 .get()

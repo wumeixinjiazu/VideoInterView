@@ -2,7 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp">
 
     <ImageView
         android:id="@+id/iv_location"
@@ -16,34 +18,37 @@
 
     <TextView
         android:id="@+id/tv_network_name"
-        app:layout_constraintStart_toEndOf="@id/iv_location"
-        app:layout_constraintTop_toTopOf="@id/iv_location"
-        app:layout_constraintBottom_toBottomOf="@id/iv_location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:text="广州赤岗支行"
         android:textSize="18dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintBottom_toBottomOf="@id/iv_location"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/iv_location"
+        app:layout_constraintTop_toTopOf="@id/iv_location" />
 
     <TextView
         android:id="@+id/tv_network_address"
-        app:layout_constraintStart_toStartOf="@id/iv_location"
-        app:layout_constraintTop_toBottomOf="@id/iv_location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:text="地址：广州市越秀区寺右新马路124号102房"
         android:textSize="18dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/iv_location"
+        app:layout_constraintTop_toBottomOf="@id/iv_location" />
 
 
     <TextView
         android:id="@+id/tv_network_tel"
-        app:layout_constraintStart_toStartOf="@id/iv_location"
-        app:layout_constraintTop_toBottomOf="@id/tv_network_address"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:paddingBottom="10dp"
         android:text="电话：020-87362803"
         android:textSize="18dp"
-        android:paddingBottom="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/iv_location"
+        app:layout_constraintTop_toBottomOf="@id/tv_network_address" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

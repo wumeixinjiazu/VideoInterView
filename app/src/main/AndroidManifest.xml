@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.videocomm.VideoInterView">
-
+    <!-- 这个权限用于进行网络定位-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- 这个权限用于访问GPS定位-->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- 用于访问wifi网络信息，wifi信息会用于进行网络定位-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <!-- 获取运营商信息，用于支持提供运营商信息相关的接口-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 这个权限用于获取wifi的获取权限，wifi信息会用来进行网络定位-->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- android 9.0上使用前台服务，需要添加权限 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 获取模拟定位信息 -->
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"/>
     <!--    联网权限-->
     <uses-permission android:name="android.permission.INTERNET" />
     <!--    相机权限-->
@@ -29,6 +42,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+
+        <!-- 声明service组件 -->
+        <service
+            android:name="com.baidu.location.f"
+            android:enabled="true"
+            android:process=":remote"/>
+        <!-- AK鉴权 -->
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="TkZ3nYbGEGKP4GIj2aQGBXdi8QGFdwWQ" /> <!-- http://lbsyun.baidu.com/apiconsole/key -->
+
         <activity
             android:name="com.videocomm.VideoInterView.activity.LaunchActivity"
             android:launchMode="singleTask"

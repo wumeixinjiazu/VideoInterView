@@ -24,9 +24,10 @@ public class DialogFactory {
 
     public static int mCurrentDialogId = 0;
     public static final int DIALOGID_RISK_REPORT = 1;
-    public static final int DIALOGID_ENDCALL = 5;
+    public static final int DIALOGID_END_CALL = 5;
     public static final int DIALOGID_EXIT_YEWU = 8;
     public static final int DIALOGID_EXIT_QUEUE = 9;
+    public static final int DIALOGID_EXIT_ACT = 10;
 
     public static Dialog getDialog(int dwDialogId,
                                    Activity context, View.OnClickListener listener) {
@@ -34,7 +35,7 @@ public class DialogFactory {
         return mDialog;
     }
 
-    public void initDialog(int dwDialogId, Activity context, View.OnClickListener listener) {
+    private void initDialog(int dwDialogId, Activity context, View.OnClickListener listener) {
         if (mContext != context) {
             mContext = context;
             mLayoutInlater = (LayoutInflater) mContext
@@ -51,15 +52,18 @@ public class DialogFactory {
             case DIALOGID_EXIT_QUEUE:
                 initQuitDialg(mDialog, "您确定要退出当前排队吗？", listener);
                 break;
-            case DIALOGID_ENDCALL:
+            case DIALOGID_END_CALL:
                 initQuitDialg(mDialog, "您确定要结束当前服务吗？", listener);
+                break;
+                case DIALOGID_EXIT_ACT:
+                initQuitDialg(mDialog, "您确定要退出当前界面吗？", listener);
                 break;
             default:
                 break;
         }
     }
 
-    public void initQuitDialg(final Dialog dialog, String content, View.OnClickListener onClickListener) {
+    private void initQuitDialg(final Dialog dialog, String content, View.OnClickListener onClickListener) {
         View view = mLayoutInlater
                 .inflate(R.layout.dialog_resumeorcancel, null);
         TextView buttonQuit = (TextView) view.findViewById(R.id.btn_resume);
@@ -76,8 +80,7 @@ public class DialogFactory {
                 dialog.dismiss();
             }
         });
-        String strTitle = content;
-        initDialogTitle(view, strTitle);
+        initDialogTitle(view, content);
         dialog.setContentView(view);
     }
 

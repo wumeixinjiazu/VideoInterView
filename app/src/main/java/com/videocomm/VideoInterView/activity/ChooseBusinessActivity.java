@@ -16,6 +16,7 @@ import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.adapter.BusinessAdapter;
 import com.videocomm.VideoInterView.bean.ProductsBean;
 import com.videocomm.VideoInterView.bean.RouteBean;
+import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
@@ -108,5 +109,10 @@ public class ChooseBusinessActivity extends TitleActivity {
                 break;
         }
     }
-
+    @Override
+    public void onBackPressed() {
+        DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+            finish();
+        }).show();
+    }
 }

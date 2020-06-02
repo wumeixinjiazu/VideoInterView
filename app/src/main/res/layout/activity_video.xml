@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_head"
-    android:orientation="vertical">
+    android:background="@color/transparent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        android:background="@color/main_head">
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
-            <ImageView
-                android:id="@+id/iv_video_bg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/bg_video" />
 
             <include
                 layout="@layout/video_session"
@@ -33,30 +26,22 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|top"
                 android:layout_marginTop="25dp"
-                android:layout_marginRight="25dp"
+                android:layout_marginEnd="25dp"
                 android:textColor="#e64346"
                 android:textSize="16sp"
                 android:visibility="gone" />
 
         </FrameLayout>
-    </LinearLayout>
+    </RelativeLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
+    <FrameLayout
+        android:layout_width="250dp"
+        android:layout_height="400dp"
+        android:layout_gravity="start|bottom"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="110dp">
 
-        <Button
-            android:id="@+id/btn_endsession"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="10dip"
-            android:text="结束服务"
-            android:textColor="@color/dancen"
-            android:textSize="18sp"
-            android:visibility="gone" />
-    </LinearLayout>
+        <include layout="@layout/layout_chat" />
+    </FrameLayout>
 
-</LinearLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

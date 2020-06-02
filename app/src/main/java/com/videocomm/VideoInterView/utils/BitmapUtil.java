@@ -13,6 +13,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Environment;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -42,7 +43,7 @@ public class BitmapUtil {
      * @param filename
      * @return
      */
-    public static void saveBitmap2file(Bitmap bmp, String filename) {
+    public static File saveBitmap2file(Bitmap bmp, String filename) {
         String path = Environment
                 .getExternalStorageDirectory().getPath()
                 + "/"
@@ -67,6 +68,7 @@ public class BitmapUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return file;
     }
 
     public static void saveBitmap2file(Bitmap bmp) {

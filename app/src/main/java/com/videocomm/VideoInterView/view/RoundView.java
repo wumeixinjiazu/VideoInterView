@@ -78,7 +78,6 @@ public class RoundView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // TODO Auto-generated method stub
         super.onDraw(canvas);
 //        canvas.drawColor(Color.TRANSPARENT);
         canvas.drawPaint(mBGPaint);
@@ -90,7 +89,5 @@ public class RoundView extends View {
         canvas.drawCircle(cx, cy, radius + 5, mPathPaint);//画虚线圆
         canvas.drawCircle(cx, cy, radius, mFaceRoundPaint);
     }
-
-
 }
 

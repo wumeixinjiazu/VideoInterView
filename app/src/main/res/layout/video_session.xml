@@ -5,30 +5,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/ll_surface_remote"
+    <ImageView
+        android:id="@+id/iv_video_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical" />
+        android:scaleType="fitXY"
+        android:src="@drawable/bg_video" />
 
-    <LinearLayout
+    <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
         android:id="@+id/ll_surface_local"
-        android:layout_width="120dp"
-        android:layout_height="0dp"
-        android:layout_gravity="bottom|right"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="5dp"
-        app:layout_constraintDimensionRatio="h,3:4"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <SurfaceView
             android:id="@+id/surface_local"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-    </LinearLayout>
+    </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
 
-    <LinearLayout
+    <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
+        android:id="@+id/ll_surface_remote"
+        android:layout_width="120dp"
+        android:layout_height="0dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="5dp"
+        android:orientation="vertical"
+        app:layout_constraintDimensionRatio="h,3:4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
         android:id="@+id/ll_surface_other"
         android:layout_width="120dp"
         android:layout_height="0dp"
@@ -37,7 +45,7 @@
         android:orientation="vertical"
         app:layout_constraintDimensionRatio="h,3:4"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ll_surface_local" />
+        app:layout_constraintTop_toBottomOf="@id/ll_surface_remote" />
 
     <TextView
         android:id="@+id/txt_time"
@@ -60,5 +68,15 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageButton
+        android:id="@+id/ib_chat_switch"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/ic_chat"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

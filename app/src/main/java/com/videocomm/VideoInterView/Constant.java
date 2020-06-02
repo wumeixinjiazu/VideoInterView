@@ -71,10 +71,21 @@ public class Constant {
     public static final String TAKE_PIC_FRONT_PATH = "takeFront";
     public static final String TAKE_PIC_BACK_PATH = "takeBack";
 
+    public static final String DEFAULT_FRONT_PATH = "default_front";
+    public static final String DEFAULT_BACK_PATH = "default_back";
+
     /**
      * 人脸识别图片压缩路径
      */
     public static final String FACE_RECO_PIC_PATH = "faceReco";
+
+    /**
+     * 发送接收消息类型
+     * 风险播报 0
+     * 文字聊天 1
+     */
+    public static final int MSG_TYPE_RISK = 0;
+    public static final int MSG_TYPE_CHAT = 1;
 
 
 }

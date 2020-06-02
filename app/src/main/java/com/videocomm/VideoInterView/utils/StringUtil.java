@@ -37,6 +37,18 @@ public class StringUtil {
         Date curDate = new Date(System.currentTimeMillis());
         return format.format(curDate);
     }
+    /**
+     * 获取当前时间
+     *
+     * @return
+     */
+    public static String getTime() {
+        Date date = new Date();// 创建一个时间对象，获取到当前的时间
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置时间显示格式
+        String CurrentTime = sdf.format(date);
+
+        return CurrentTime;
+    }
 
     public static String getTimeShowStringTwo(int Seconds) {
 

@@ -36,6 +36,20 @@ public class NetworkAdapter extends BaseAdapter {
         return clickItem;
     }
 
+    public String getChooseNetworkName() {
+        if (clickItem == -1) {
+            return "";
+        }
+        return datas.get(clickItem).getName();
+    }
+
+    public String getChooseNetworkAddr() {
+        if (clickItem == -1) {
+            return "";
+        }
+        return datas.get(clickItem).getAddress();
+    }
+
     public void setClickItem(int clickItem) {
         this.clickItem = clickItem;
         notifyDataSetChanged();
@@ -77,9 +91,9 @@ public class NetworkAdapter extends BaseAdapter {
         } else {
             holder = (Holder) convertView.getTag();
         }
-        if (clickItem == position){
+        if (clickItem == position) {
             convertView.setBackgroundResource(R.color.gray_cc);
-        }else {
+        } else {
             convertView.setBackgroundResource(R.color.transparent);
         }
         holder.tvName.setText(datas.get(position).getName());
@@ -105,7 +119,7 @@ public class NetworkAdapter extends BaseAdapter {
      *
      * @param datas
      */
-    public void refreshSearchData(List<NetworkBean.ContentBean.ResultListBean> datas) {
+    private void refreshSearchData(List<NetworkBean.ContentBean.ResultListBean> datas) {
         this.datas = datas;
         notifyDataSetChanged();
     }
@@ -113,23 +127,23 @@ public class NetworkAdapter extends BaseAdapter {
     /**
      * 在oloDatas数据中检索有没有搜索的内容 并刷新
      *
-     * @param s
+     * @param key 搜索的文字
      */
-    public void search(String s) {
+    public void search(String key) {
         newDatas.clear();
         for (int i = 0; i < oldDatas.size(); i++) {
-            if (oldDatas.get(i).getName().contains(s)) {
+            if (oldDatas.get(i).getName().contains(key)) {
                 newDatas.add(oldDatas.get(i));
             }
         }
-        if (newDatas.size() > 0 || s.length() >= 1) {
+        if (newDatas.size() > 0 || key.length() >= 1) {
             refreshSearchData(newDatas);
         } else {
             refreshSearchData(oldDatas);
         }
     }
 
-    class Holder {
+    static class Holder {
         TextView tvName;
         TextView tvAddress;
         TextView tvTel;

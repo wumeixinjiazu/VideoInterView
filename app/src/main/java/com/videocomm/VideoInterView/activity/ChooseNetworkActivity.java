@@ -26,6 +26,7 @@ import com.videocomm.VideoInterView.adapter.NetworkAdapter;
 import com.videocomm.VideoInterView.bean.NetworkBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
+import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
@@ -79,7 +80,6 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
      * 请求网点数据
      */
     private void requestData(String city) {
-
         HttpUtil.requestNetwork(city, SpUtil.getInstance().getString(SpUtil.USERPHONE, ""), "10", "0", new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -110,7 +110,7 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
                             } else {
                                 ivNoData.setVisibility(View.VISIBLE);
                             }
-                        
+
                         } else {
                             List<NetworkBean.ContentBean.ResultListBean> resultList = networkBean.getContent().getResultList();
                             //刷新数据
@@ -190,16 +190,15 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
                     ToastUtil.show("请选择办理网点");
                     return;
                 }
-                //保存网点数据
+                //保存数据
                 List<TradeInfo.ExInfosBean> exInfos = new ArrayList<>();
-                List<NetworkBean.ContentBean.ResultListBean> resultList = networkBean.getContent().getResultList();
-                NetworkBean.ContentBean.ResultListBean bean = resultList.get(adapter.getClickItem());
                 TradeInfo.ExInfosBean exInfosBean = new TradeInfo.ExInfosBean();
-                exInfosBean.setExKey(bean.getName());
-                exInfosBean.setExValue(bean.getAddress());
+                exInfosBean.setExKey(adapter.getChooseNetworkName());
+                exInfosBean.setExValue(adapter.getChooseNetworkAddr());
                 exInfos.add(exInfosBean);
                 mVideoApplication.setExInfos(exInfos);
-
+                Log.d(tag, adapter.getChooseNetworkName());
+                Log.d(tag, adapter.getChooseNetworkAddr());
                 startActivity(new Intent(ChooseNetworkActivity.this, IdentityVerifyActivity.class));
                 finish();
                 break;
@@ -348,5 +347,12 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
         }
 
         ToastUtil.show("暂无" + city + "网点");
+    }
+
+    @Override
+    public void onBackPressed() {
+        DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+            finish();
+        }).show();
     }
 }

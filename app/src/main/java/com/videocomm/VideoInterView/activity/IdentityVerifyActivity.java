@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +25,7 @@ import com.baidu.idl.face.platform.FaceEnvironment;
 import com.baidu.idl.face.platform.FaceSDKManager;
 import com.baidu.idl.face.platform.LivenessTypeEnum;
 import com.videocomm.VideoInterView.Config;
+import com.videocomm.VideoInterView.Constant;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
@@ -34,6 +36,7 @@ import com.videocomm.VideoInterView.dlgfragment.PicChooseFragment;
 import com.videocomm.VideoInterView.fragment.FaceDetectFragment;
 import com.videocomm.VideoInterView.fragment.FaceRecoFragment;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
+import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.DialogUtil;
 import com.videocomm.VideoInterView.utils.FileUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
@@ -54,6 +57,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+import static com.videocomm.VideoInterView.Constant.DEFAULT_BACK_PATH;
+import static com.videocomm.VideoInterView.Constant.DEFAULT_FRONT_PATH;
 import static com.videocomm.VideoInterView.Constant.FACE_RECO_PIC_PATH;
 import static com.videocomm.VideoInterView.Constant.OPEN_CAMERA;
 import static com.videocomm.VideoInterView.Constant.PHOTO_BACK_PATH;
@@ -250,7 +255,20 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         ivIdentityState = findViewById(R.id.iv_identity_state);
         tvIdentityState = findViewById(R.id.tv_identity_state);
 
+        initRecoPath();
 
+    }
+
+    /**
+     * 初始化身份证默认图片和默认路径
+     */
+    private void initRecoPath() {
+        Bitmap frontBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_idcardr_front);
+        Bitmap backBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_idcardr_back);
+        BitmapUtil.saveBitmap2file(frontBitmap, DEFAULT_FRONT_PATH);
+        BitmapUtil.saveBitmap2file(backBitmap, Constant.DEFAULT_BACK_PATH);
+        frontPicPath = BitmapUtil.getPath(DEFAULT_FRONT_PATH);
+        backPicPath = BitmapUtil.getPath(Constant.DEFAULT_BACK_PATH);
     }
 
     @Override
@@ -258,8 +276,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         switch (v.getId()) {
             case R.id.btn_recognition_next://识别身份证
                 readFront();
-//                stepOneTwo.setVisibility(View.VISIBLE);
-//                stepOne.setVisibility(View.GONE);
                 break;
             case R.id.btn_info_next://下一步
                 checkData();
@@ -430,6 +446,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
      * 读取身份证正面
      */
     private void readFront() {
+
         if (frontPicPath.isEmpty() || backPicPath.isEmpty()) {
             ToastUtil.show("请上传图片");
             return;
@@ -537,26 +554,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
 
         mApplication.getPicList().add(picListBean);
         mApplication.getPicList().add(picListBean1);
-    }
-
-    @Override
-    public void onBackPressed() {
-        //以下仅测试调用
-//        if (stepOne.isShown()) {
-//            finish();
-//        } else if (stepOneTwo.isShown()) {
-//            stepOneTwo.setVisibility(View.INVISIBLE);
-//            stepOne.setVisibility(View.VISIBLE);
-//        } else if (stepTwo.isShown()) {
-//            stepTwo.setVisibility(View.INVISIBLE);
-//            stepOneTwo.setVisibility(View.VISIBLE);
-//            progressCustom.setSelectIndex(0);
-//        } else if (stepTwoOne.isShown()) {
-//            stepTwoOne.setVisibility(View.GONE);
-//            surfaceFaceReco.closeCamera();
-//            stepTwo.setVisibility(View.VISIBLE);
-//        }
-        super.onBackPressed();
     }
 
     @Override
@@ -738,10 +735,10 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
 
     @Override
     protected void onDestroy() {
+        deletePic();
         super.onDestroy();
         mHandler.removeCallbacksAndMessages(null);
         mHandler = null;
-        deletePic();
     }
 
     /**
@@ -753,6 +750,8 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         FileUtil.deleteFile(BitmapUtil.getPath(TAKE_PIC_FRONT_PATH));
         FileUtil.deleteFile(BitmapUtil.getPath(TAKE_PIC_BACK_PATH));
         FileUtil.deleteFile(BitmapUtil.getPath(FACE_RECO_PIC_PATH));
+        FileUtil.deleteFile(BitmapUtil.getPath(DEFAULT_FRONT_PATH));
+        FileUtil.deleteFile(BitmapUtil.getPath(DEFAULT_BACK_PATH));
     }
 
     @Override
@@ -784,6 +783,18 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         if (backPicPath.length() > 0) {
             Bitmap backBitmap = BitmapUtil.getBitmapFromFile(backPicPath);
             ivBackIdCard.setImageBitmap(backBitmap);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (stepOneTwo.isShown()) {
+            stepOneTwo.setVisibility(View.INVISIBLE);
+            stepOne.setVisibility(View.VISIBLE);
+        } else {
+            DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+                finish();
+            }).show();
         }
     }
 }

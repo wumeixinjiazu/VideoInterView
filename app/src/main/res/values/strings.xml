@@ -45,7 +45,11 @@
     <string name="white_red_white"><Data><![CDATA[<font color="#ffffff">%1$s</font><big><font color="#f34141">%2$s</font></big><font color="#ffffff">%3$s</font>]]></Data></string>
     <string name="blue_red_blue_red"><Data><![CDATA[<font color="#3478F7">%1$s</font><big><font color="#ff0000">%2$s</font></big><font color="#3478F7">%3$s</font><big><font color="#ff0000">%4$s</font></big>]]></Data></string>
     <string name="black_red"><Data><![CDATA[<font color="#333333">%1$s</font><big><font color="#f34141">%2$s</font></big>]]></Data></string>
+    <string name="blue_white"><Data><![CDATA[<font color="#90E3FF">%1$s</font><font color="#ffffff">%2$s</font>]]></Data></string>
+    <string name="finish_queue">结束排队</string>
+    <string name="finish_call">结束呼叫</string>
 
+    <!--    百度人脸识别-->
     <string name="detect_no_face">未检测到人脸</string>
     <string name="detect_face_in">把脸移入框内</string>
     <string name="detect_zoom_in">手机拿近一点</string>

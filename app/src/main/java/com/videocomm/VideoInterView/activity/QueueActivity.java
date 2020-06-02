@@ -11,7 +11,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.videocomm.VideoInterView.R;
@@ -22,7 +21,6 @@ import com.videocomm.VideoInterView.bean.QueueStateBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
-import com.videocomm.VideoInterView.utils.LogUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
@@ -31,18 +29,18 @@ import com.videocomm.mediasdk.VComSDKDefine;
 import com.videocomm.mediasdk.VComSDKEvent;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_ENTERQUEUE;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_HANGUPVIDEO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_LEAVEQUEUE;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_QUERYQUEUEINFO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_QUREYQUEUELENGTH;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_AGENTSERVICE;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_ENTERRESULT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_HANGUPVIDEO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_QUERYQUEUEINFO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_QUREYQUEUELENGTH;
@@ -61,6 +59,8 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
     private Dialog dialog;
     private VideoApplication mVideoApplication;
     private QueueBean queueBean;
+    private Button queueButton;
+    private boolean isAgentHandup = false;//记录是否坐席挂断
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,9 +84,12 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
         //实时更新显示时间
         timeshow = (TextView) findViewById(R.id.queue_time);
         String targetUserName = mVideoApplication.getTargetUserName();
+        queueButton = (Button) findViewById(R.id.queue_btn);
+        queueButton.setOnClickListener(v -> alertDialog());
         if (targetUserName.length() > 0) {
             //表示 用户还没进入队列之前 坐席已经示闲（等待用户）
             mTitleLayoutManager.setTitle("呼叫坐席" + targetUserName);
+            queueButton.setText(getString(R.string.finish_call));
             showTextView.setVisibility(View.GONE);
             timeshow.setVisibility(View.GONE);
         }
@@ -112,8 +115,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
             }
         }, 0, 1000);
 
-        Button quickButton = (Button) findViewById(R.id.queue_btn);
-        quickButton.setOnClickListener(v -> alertDialog());
     }
 
     /**
@@ -126,12 +127,14 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
     }
 
     private void alertDialog() {
-        dialog = DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_QUEUE, this, new OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        dialog = DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_QUEUE, this, v -> {
+            if (queueButton.getText().toString().equals(getString(R.string.finish_call))) {
+                sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_HANGUPVIDEO, "");
+            } else if (queueButton.getText().toString().equals(getString(R.string.finish_queue))) {
                 sdkUnit.VCOM_QueueControl(VCOM_QUEUECTRL_LEAVEQUEUE, "");
-                finish();
             }
+            mVideoApplication.setTargetUserName("");
+            finish();
         });
         dialog.show();
     }
@@ -178,7 +181,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
-        mVideoApplication.setTargetUserName("");
     }
 
     @Override
@@ -199,7 +201,7 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
 
     @Override
     public void OnDisconnect(int iErrorCode) {
-
+        finish();
     }
 
     @Override
@@ -213,10 +215,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
      */
     @Override
     public void OnConferenceResult(int iAction, String lpConfId, int iErrorCode) {
-        if (VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_JOIN == iAction) {
-            if (iErrorCode == 0) {
-            }
-        }
     }
 
     private void startVideoActvity(String confid) {
@@ -326,6 +324,7 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 mTitleLayoutManager.setTitle("呼叫坐席" + agentId);
                 showTextView.setText("正在呼叫坐席" + agentId + "中...");
                 timeshow.setVisibility(View.INVISIBLE);
+                queueButton.setText(getString(R.string.finish_call));
                 break;
             case VCOM_QUEUEEVENT_STARTVIDEO:
                 if (iErrorCode != 0) {
@@ -337,7 +336,17 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 break;
             case VCOM_QUEUEEVENT_HANGUPVIDEO:
                 //用户 坐席挂断
-                finish();
+//                finish();
+                isAgentHandup = true;
+                break;
+            case VCOM_QUEUEEVENT_ENTERRESULT:
+                //进入队列
+                if (iErrorCode == 0 && isAgentHandup) {
+                    mTitleLayoutManager.setTitle(mVideoApplication.getSelectBussiness() + "-排队等待中");
+                    queueButton.setText(getString(R.string.finish_queue));
+                    timeshow.setVisibility(View.VISIBLE);
+                    showTextView.setVisibility(View.VISIBLE);
+                }
                 break;
             default:
                 break;
@@ -361,14 +370,16 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
         String backPic = "";
         String facePic = "";
         List<TradeInfo.PicListBean> picList = mVideoApplication.getPicList();
-        if (picList.size() > 0) {
-            for (int i = 0; i < picList.size(); i++) {
-                if (picList.get(i).getType() == 15) {
-                    frontPic = picList.get(i).getPic();
-                } else if (picList.get(i).getType() == 16) {
-                    backPic = picList.get(i).getPic();
-                } else if (picList.get(i).getType() == 17) {
-                    facePic = picList.get(i).getPic();
+        if (picList != null) {
+            if (picList.size() > 0) {
+                for (int i = 0; i < picList.size(); i++) {
+                    if (picList.get(i).getType() == 15) {
+                        frontPic = picList.get(i).getPic();
+                    } else if (picList.get(i).getType() == 16) {
+                        backPic = picList.get(i).getPic();
+                    } else if (picList.get(i).getType() == 17) {
+                        facePic = picList.get(i).getPic();
+                    }
                 }
             }
         }
@@ -385,12 +396,12 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
         double latitude = mVideoApplication.getLatitude();
         double longitude = mVideoApplication.getLongitude();
         String businessData = "{\"userId\":\"" + userCode + "\",\"username\":\"" + userCode + "\",\"userStr\":{\"content\":[{\"groupData\":[{\"key\":\"userName\",\"name\":\"客户名称\",\"order\":1,\"value\":\"" + userName + "\"},{\"key\":\"userPhone\",\"name\":\"客户手机\",\"order\":2,\"value\":\"" + userPhone + "\"},{\"key\":\"userSex\",\"name\":\"客户性别\",\"order\":3,\"value\":\"" + sex + "\"},{\"key\":\"idcardAddress\",\"name\":\"证件地址\",\"order\":4,\"value\":\"" + idCardAddress + "\"},{\"key\":\"idcardNum\",\"name\":\"证件号码\",\"order\":5,\"value\":\"" + idcardNum + "\"}],\"groupName\":\"客户信息\",\"groupOrder\":1},{\"groupData\":[{\"key\":\"productNumber\",\"name\":\"产品编号\",\"order\":1,\"value\":\"Product01\"},{\"key\":\"productName\",\"name\":\"产品名称\",\"order\":2,\"value\":\"中国一号资产管理计划\"},{\"key\":\"integratorCode\",\"name\":\"渠道编码\",\"order\":3,\"value\":\"QuDao01\"},{\"key\":\"integratorName\",\"name\":\"渠道名称\",\"order\":4,\"value\":\"自助渠道\"},{\"key\":\"businessCode\",\"name\":\"业务编码\",\"order\":5,\"value\":\"Biz01\"},{\"key\":\"businessName\",\"name\":\"业务类型\",\"order\":6,\"value\":\"双录业务\"}],\"groupName\":\"业务信息\",\"groupOrder\":2}],\"expansion\":\"{\\\"address\\\":\\\"" + address + "\\\",\\\"ip\\\":\\\"192.168.0.101\\\"}\",\"from\":\"Android\",\"thirdTradeNo\":\"" + tradNo + "\",\"type\":2,\"picList\":[{\"pic\":\"" + frontPic + "\",\"type\":15},{\"pic\":\"" + backPic + "\",\"type\":16},{\"pic\":\"" + facePic + "\",\"type\":17}],\"exInfos\":[{\"exKey\":\"address\",\"exValue\":\"" + address + "\",\"description\":\"" + addrDesc + "\"},{\"exKey\":\"ip\",\"exValue\":\"192.168.0.101\",\"description\":\"\"},{\"exKey\":\"latitude\",\"exValue\":\"" + latitude + "\",\"description\":\"\"},{\"exKey\":\"longitude\",\"exValue\":\"" + longitude + "\",\"description\":\"\"}]}}";
-        try {
-            businessData = Base64.encodeToString(businessData.getBytes("UTF-8"), Base64.NO_WRAP);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        String resultData = "{\"queueid\":\"" + queueId + "\",\"business\":\"" + businessData + "\"}";
+//        try {
+//            businessData = Base64.encodeToString(businessData.getBytes("UTF-8"), Base64.NO_WRAP);
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+        String resultData = "{\"queueid\":\"" + queueId + "\",\"business\":" + businessData + "}";
         return resultData;
     }
 

@@ -20,6 +20,11 @@ import java.lang.reflect.Method;
 public class LocalFullScreenCameraPreview extends LinearLayout {
     private String tag = getClass().getSimpleName();
     private Context mContext;
+    private boolean isAuto = true;//设置是否自动调节
+
+    public void setAuto(boolean auto) {
+        isAuto = auto;
+    }
 
     public LocalFullScreenCameraPreview(Context context) {
         this(context, null);
@@ -37,13 +42,13 @@ public class LocalFullScreenCameraPreview extends LinearLayout {
         Log.d(tag, left + "-" + top + "-" + right + "-" + bottom);
         int screenRealWidth;
         int screenRealHeigh;
-        if (isPortraitMode()) {
-            screenRealWidth = getScreenRealWidth(mContext);
-            screenRealHeigh = getScreenRealHeigh(mContext);
-        } else {
-            screenRealHeigh = getScreenRealWidth(mContext);
-            screenRealWidth = getScreenRealHeigh(mContext);
-        }
+//        if (isPortraitMode()) {
+        screenRealWidth = getScreenRealWidth(mContext);
+        screenRealHeigh = getScreenRealHeigh(mContext);
+//        } else {
+//            screenRealHeigh = getScreenRealWidth(mContext);
+//            screenRealWidth = getScreenRealHeigh(mContext);
+//        }
         Log.d(tag, "getScreenRealWidth" + getScreenRealWidth(mContext));
         Log.d(tag, "getScreenRealHeigh" + getScreenRealHeigh(mContext));
 
@@ -71,8 +76,10 @@ public class LocalFullScreenCameraPreview extends LinearLayout {
         int childLeft = (childWidth - layoutWidth) / 2;
         Log.e("====childLeft ", childLeft + "");
         for (int i = 0; i < this.getChildCount(); ++i) {
-            this.getChildAt(i).layout(0, 0, childWidth, childHeight);//设置子View的位置
-            this.getChildAt(i).setTranslationX(-childLeft);//设置X的偏移量
+            if (isAuto && layoutWidth >= screenRealWidth) {
+                this.getChildAt(i).layout(0, 0, childWidth, childHeight);//设置子View的位置
+                this.getChildAt(i).setTranslationX(-childLeft);//设置X的偏移量
+            }
         }
     }
 

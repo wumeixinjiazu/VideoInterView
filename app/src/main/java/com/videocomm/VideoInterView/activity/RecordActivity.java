@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
+import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.LogUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
@@ -48,6 +49,7 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_STOP;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_UNLOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_LOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_STOP;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_ENTERRESULT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_GUID;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCENE;
 
@@ -179,6 +181,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     @Override
     public void OnDisconnect(int iErrorCode) {
         Log.i(tag, "OnDisconnect--iErrorCode:" + iErrorCode);
+        finish();
     }
 
     /**
@@ -310,6 +313,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     @Override
     public void OnQueueEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnQueueEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
+
     }
 
     //AI 能力
@@ -361,15 +365,15 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                     ansErrorNum = 0;
                     playTTS(getString(R.string.ai_question_two));
                 } else {
-                    //回答错误
-                    ToastUtil.show("回答错误，请重新回答");
-
                     ansErrorNum++;
                     if (ansErrorNum == 3) {
                         ansErrorNum = 0;
                         isSuccess = false;
                         sdkUnit.VCOM_StopRecord(iRecordId);
+                        ToastUtil.show("录制失败");
                     } else {
+                        //回答错误
+                        ToastUtil.show("回答错误，请重新回答");
                         playTTS(getString(R.string.ai_question_one));
                     }
                 }
@@ -381,14 +385,15 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                     ansErrorNum = 0;
                     playTTS(getString(R.string.ai_question_three));
                 } else {
-                    //回答错误
-                    ToastUtil.show("回答错误，请重新回答");
                     ansErrorNum++;
                     if (ansErrorNum == 3) {
                         ansErrorNum = 0;
                         isSuccess = false;
                         sdkUnit.VCOM_StopRecord(iRecordId);
+                        ToastUtil.show("录制失败");
                     } else {
+                        //回答错误
+                        ToastUtil.show("回答错误，请重新回答");
                         playTTS(getString(R.string.ai_question_two));
                     }
                 }
@@ -401,14 +406,15 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
                     isSuccess = true;
                     ansErrorNum = 0;
                 } else {
-                    //回答错误
-                    ToastUtil.show("回答错误，请重新回答");
                     ansErrorNum++;
                     if (ansErrorNum == 3) {
                         ansErrorNum = 0;
                         isSuccess = false;
                         sdkUnit.VCOM_StopRecord(iRecordId);
+                        ToastUtil.show("录制失败");
                     } else {
+                        //回答错误
+                        ToastUtil.show("回答错误，请重新回答");
                         playTTS(getString(R.string.ai_question_three));
                     }
                 }
@@ -578,10 +584,12 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
 
     @Override
     public void onBackPressed() {
-        //手动退出
-        isSelfExit = true;
-        sdkUnit.VCOM_LeaveConference();
-        sdkUnit.VCOM_Logout();
-        super.onBackPressed();
+        DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+            //手动退出
+            isSelfExit = true;
+            sdkUnit.VCOM_LeaveConference();
+            sdkUnit.VCOM_Logout();
+            finish();
+        }).show();
     }
 }

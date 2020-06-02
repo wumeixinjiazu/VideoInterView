@@ -21,6 +21,7 @@ import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.bean.UploadFileBean;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
+import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.DialogUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
@@ -43,6 +44,7 @@ import okhttp3.Response;
 import static com.videocomm.VideoInterView.Constant.LOCALSCENE_CLOSE;
 import static com.videocomm.VideoInterView.Constant.RESULT_CODE_Record_Result_ACT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_EXIT;
+import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_ENTERRESULT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCENE;
 
 /**
@@ -64,6 +66,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     private Button btnAgain;
     private TextView tvUploadState;
     private VComMediaSDK sdkUnit;
+    private boolean isQueueing = false;//记录是否在队列
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -420,6 +423,7 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
     @Override
     public void OnQueueEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnQueueEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
+
     }
 
     @Override
@@ -433,4 +437,11 @@ public class RecordResultActivity extends TitleActivity implements View.OnClickL
         sdkUnit.RemoveSDKEvent(this);
     }
 
+    @Override
+    public void onBackPressed() {
+        DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+            //手动退出
+            finish();
+        }).show();
+    }
 }

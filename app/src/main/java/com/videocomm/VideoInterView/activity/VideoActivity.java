@@ -5,10 +5,13 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -19,14 +22,21 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.videocomm.VideoInterView.Constant;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.base.BaseActivity;
+import com.videocomm.VideoInterView.adapter.ChatAdapter;
+import com.videocomm.VideoInterView.bean.ChatMsg;
 import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
@@ -35,9 +45,12 @@ import com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview;
 import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.videocomm.VideoInterView.Constant.MSG_TYPE_CHAT;
 import static com.videocomm.VideoInterView.Constant.mIntLocalAudioClose;
 import static com.videocomm.VideoInterView.Constant.mIntLocalAudioOpen;
 import static com.videocomm.VideoInterView.Constant.mIntLocalChannelIndex;
@@ -70,8 +83,9 @@ public class VideoActivity extends BaseActivity implements
     private SurfaceView mSurfaceSelf;
     private SurfaceView mSurfaceOther;
     private SurfaceView mSurfaceRemote;
-    private LinearLayout llSurfaceOther;
-    private LinearLayout llSurfaceRemote;
+    private LocalFullScreenCameraPreview llSurfaceLocal;
+    private LocalFullScreenCameraPreview llSurfaceOther;
+    private LocalFullScreenCameraPreview llSurfaceRemote;
 
     private Handler mHandler;
     private TimerTask mTimerTask;
@@ -89,6 +103,15 @@ public class VideoActivity extends BaseActivity implements
     private static final int MSG_TIMEUPDATE = 2;//更新消息
     private boolean isConnectRemote = false;//记录是否连接远程成功(第二个人)
 
+    /**
+     * 聊天信息
+     */
+    private EditText etInputText;
+    private ListView lvMsgList;
+    private ChatAdapter adapter;
+    private ImageButton ibChatSwitch;
+    private DrawerLayout mDrawerLayout;
+    private String sendMsg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,27 +148,27 @@ public class VideoActivity extends BaseActivity implements
 
         //设置本地视频
         LocalMediaShow mLocalMediaShow = new LocalMediaShow(mSurfaceSelf, mVideoApplication.getUserCode());
+        mSurfaceSelf.getHolder().setSizeFromLayout();
         mSurfaceSelf.getHolder().addCallback(mLocalMediaShow);
-        mSurfaceSelf.setZOrderOnTop(true);
     }
 
     /**
      * 初始化远程视频
      */
-    private void initRemoteVideo() {
+    private void initRemoteVideo(String remoteUserCode) {
         if (currentPeople < MAX_PEOPLE) {
             mSurfaceRemote = new SurfaceView(this);
+            mSurfaceRemote.setBackgroundColor(Color.TRANSPARENT);
+            mSurfaceRemote.setZOrderOnTop(true);
             llSurfaceRemote.addView(mSurfaceRemote);
             //设置远程视频
-            targetUserName = mVideoApplication.getTargetUserName();
+            targetUserName = remoteUserCode;
             RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
             mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
 
             isConnectRemote = true;
             currentPeople += 1;
         }
-
-
     }
 
     /**
@@ -203,7 +226,6 @@ public class VideoActivity extends BaseActivity implements
             //关闭第三方流
             sdkUnit.VCOM_CloseRemoteMediaStream(targetUserName, iChannle, "");
         }
-
     }
 
     @Override
@@ -259,12 +281,29 @@ public class VideoActivity extends BaseActivity implements
         mVideoApplication = (VideoApplication) getApplication();
         llSurfaceOther = findViewById(R.id.ll_surface_other);
         llSurfaceRemote = findViewById(R.id.ll_surface_remote);
+        llSurfaceLocal = findViewById(R.id.ll_surface_local);
         mSurfaceSelf = findViewById(R.id.surface_local);
         mTxtTime = findViewById(R.id.txt_time);
         mBtnEndSession = findViewById(R.id.btn_endsession);
+        ibChatSwitch = findViewById(R.id.ib_chat_switch);
 
         mBtnEndSession.setOnClickListener(this);
         mSurfaceSelf.setOnClickListener(this);
+        ibChatSwitch.setOnClickListener(this);
+        llSurfaceOther.setOnClickListener(this);
+        llSurfaceRemote.setOnClickListener(this);
+        llSurfaceLocal.setOnClickListener(this);
+
+        llSurfaceOther.setAuto(false);
+
+        //初始化聊天
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mDrawerLayout.setScrimColor(Color.TRANSPARENT);
+        lvMsgList = findViewById(R.id.lv_msg_list);
+        etInputText = findViewById(R.id.et_input_text);
+        Button btnSend = findViewById(R.id.btn_send);
+
+        btnSend.setOnClickListener(this);
     }
 
 
@@ -273,8 +312,28 @@ public class VideoActivity extends BaseActivity implements
             case R.id.btn_endsession:
                 alertDialog();
                 break;
-            case R.id.surface_local:
-//                switchPreview(R.id.surface_local);
+            case R.id.ll_surface_local:
+//                switchPreview(R.id.ll_surface_local);
+                break;
+            case R.id.ll_surface_remote:
+//                switchPreview(R.id.ll_surface_remote);
+                break;
+            case R.id.ll_surface_other:
+//                switchPreview(R.id.ll_surface_other);
+                break;
+            case R.id.btn_send://发送消息s
+                sendMsg = etInputText.getText().toString();
+                if (TextUtils.isEmpty(sendMsg)) {
+                    return;
+                }
+                sdkUnit.VCOM_SendMessage(targetUserName, MSG_TYPE_CHAT, sendMsg);
+                break;
+            case R.id.ib_chat_switch://文字聊天开关
+                if (mDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                } else {
+                    mDrawerLayout.openDrawer(Gravity.LEFT);
+                }
                 break;
             default:
                 break;
@@ -283,7 +342,7 @@ public class VideoActivity extends BaseActivity implements
 
     private void alertDialog() {
 
-        dialog = DialogFactory.getDialog(DialogFactory.DIALOGID_ENDCALL, this, v -> {
+        dialog = DialogFactory.getDialog(DialogFactory.DIALOGID_END_CALL, this, v -> {
             startActivity(new Intent(VideoActivity.this, LoginActivity.class));
             finish();
             ToastUtil.show("正在结束视频通话...");
@@ -307,6 +366,7 @@ public class VideoActivity extends BaseActivity implements
     @Override
     public void OnDisconnect(int iErrorCode) {
         Log.i(tag, "OnDisconnect--iErrorCode:" + iErrorCode);
+        finish();
     }
 
     /**
@@ -345,7 +405,7 @@ public class VideoActivity extends BaseActivity implements
             ToastUtil.show(lpUserCode + "用户已退出");
         } else if (iAction == VCOM_CONFERENCE_ACTIONCODE_JOIN) {
             //其他用户进来后 打开远程用户流
-            initRemoteVideo();
+            initRemoteVideo(lpUserCode);
         }
     }
 
@@ -378,38 +438,75 @@ public class VideoActivity extends BaseActivity implements
         Log.i(tag, "OnSendFileStatus--iHandle:" + iHandle + "--iErrorCode:" + iErrorCode + "--iProgress" + iProgress + "--iFileLength" + iFileLength + "--iFlags" + iFlags + "--lpParam" + lpParam);
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     public void OnReceiveMessage(String lpUserCode, int iMsgType, String lpMessage) {
         Log.i(tag, "OnReceiveMessage--lpUserCode:" + lpUserCode + "--iMsgType:" + iMsgType + "--lpMessage" + lpMessage);
-        //接收来自Web端的消息（消息自定义） 开始风险播报
-        String status = JsonUtil.jsonToStr(lpMessage, "status");
-        if (status.equals("0")) {
-            String streamIndex = JsonUtil.jsonToStr(lpMessage, "mStreamIndex");
-            if (streamIndex != null) {
-                //设置裁剪
-                sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_SHRINK);
-                //设置横屏
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                //设置裁剪模式
-                iChannle = Integer.parseInt(streamIndex);
-                //设置第三人开启
-                isHasOther = true;
-                //开启风险播放流
-                if (mSurfaceOther == null) {
-                    mSurfaceOther = new SurfaceView(VideoActivity.this);
-                    llSurfaceOther.addView(mSurfaceOther, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        switch (iMsgType) {
+            case Constant.MSG_TYPE_RISK:
+                //接收来自Web端的消息（消息自定义） 开始风险播报
+                String status = JsonUtil.jsonToStr(lpMessage, "status");
+                if (status.equals("0")) {
+                    String streamIndex = JsonUtil.jsonToStr(lpMessage, "mStreamIndex");
+                    if (streamIndex != null) {
+                        //设置裁剪
+                        sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_SHRINK);
+                        //设置横屏
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                        //设置裁剪模式
+                        iChannle = Integer.parseInt(streamIndex);
+                        //设置第三人开启
+                        isHasOther = true;
+                        //开启风险播放流
+                        if (mSurfaceOther == null) {
+                            mSurfaceOther = new SurfaceView(VideoActivity.this);
+                            llSurfaceOther.addView(mSurfaceOther, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                        }
+                        RemoteMediaControl(targetUserName, mIntRemoteVideoOpen, mIntRemoteAudioOpen, iChannle, mSurfaceOther);
+                        //切换布局
+                        switchParentPreview();
+                    }
                 }
-                RemoteMediaControl(targetUserName, mIntRemoteVideoOpen, mIntRemoteAudioOpen, iChannle, mSurfaceOther);
-                //切换布局
-                switchParentPreview();
-            }
+                break;
+            case Constant.MSG_TYPE_CHAT:
+                showChatMsg(lpMessage, lpUserCode, ChatMsg.RECEIVED);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 展示聊天消息
+     *
+     * @param msg  消息内容
+     * @param type 消息类型 发送/接收
+     */
+    private void showChatMsg(String msg, String user, int type) {
+        ChatMsg chatMsg = new ChatMsg(msg, user, type, StringUtil.getTime());
+        List<ChatMsg> data = new ArrayList<>();
+        if (adapter == null) {
+            data.add(chatMsg);
+            adapter = new ChatAdapter(this, data);
+            lvMsgList.setAdapter(adapter);
+        } else {
+            data.add(chatMsg);
+            adapter.refreshData(data);
         }
     }
 
     // 发送消息回调（用于发送回执）
     @Override
     public void OnSendMessage(int iMsgId, int iErrorCode) {
-
+        if (iErrorCode == 0) {
+            //发送成功
+            if (etInputText != null) {
+                showChatMsg(sendMsg, mVideoApplication.getUserCode(), ChatMsg.RECEIVED);
+                etInputText.setText("");
+            }
+        } else {
+            ToastUtil.show("发送消息失败，请重试");
+        }
     }
 
     // 媒体文件控制回调
@@ -563,17 +660,18 @@ public class VideoActivity extends BaseActivity implements
      * 切换父控件布局参数已达到两个视频切换
      */
     private void switchParentPreview() {
-        LinearLayout remoteLayout = findViewById(R.id.ll_surface_remote);
-        LinearLayout otherLayout = findViewById(R.id.ll_surface_other);
+        LocalFullScreenCameraPreview localLayout = findViewById(R.id.ll_surface_local);
+        LocalFullScreenCameraPreview otherLayout = findViewById(R.id.ll_surface_other);
 
-        ViewGroup.LayoutParams remoteLayoutParams = remoteLayout.getLayoutParams();
+        ViewGroup.LayoutParams localLayoutLayoutParams = localLayout.getLayoutParams();
         ViewGroup.LayoutParams otherLayoutParams = otherLayout.getLayoutParams();
 
-        remoteLayout.setLayoutParams(otherLayoutParams);
+        localLayout.setLayoutParams(otherLayoutParams);
 
-        otherLayout.setLayoutParams(remoteLayoutParams);
+        otherLayout.setLayoutParams(localLayoutLayoutParams);
 
-        mSurfaceRemote.setZOrderOnTop(true);
+        mSurfaceSelf.setZOrderOnTop(true);
+        mSurfaceSelf.setTranslationX(0);
     }
 
     private int mLargeViewId = R.id.ll_surface_remote;

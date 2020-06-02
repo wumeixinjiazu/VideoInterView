@@ -50,7 +50,7 @@
         android:layout_marginTop="50dp"
         android:background="@drawable/bg_gray_rect_soild"
         android:padding="20dp"
-        android:text="您的双录未通过审核\n• 回答问题时，声音不清晰无法识别；\n• 双录时，视频中没有或出现多人人像；\n• 双录时，视频模糊不能识别\n您可以重新进行双录或转人工客服进行双录"
+        android:text="您的双录未通过审核\n• 回答问题时，声音不清晰无法识别；\n• 双录时，视频中没有或出现多人人像\n您可以重新进行双录或转人工客服进行双录"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

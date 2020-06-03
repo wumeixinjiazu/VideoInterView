@@ -320,8 +320,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     @Override
     public void OnAIAbilityEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnAIAbilityEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
-//        sdkUnit.VCOM_StopRecord(iRecordId);
-//        isSuccess = false;
+        sdkUnit.VCOM_StopRecord(iRecordId);
+        isSuccess = false;
         switch (iEventType) {
             case VCOM_AIABILITY_EVENT_PROCESSING:
                 break;

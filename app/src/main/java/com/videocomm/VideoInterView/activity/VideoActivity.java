@@ -249,7 +249,6 @@ public class VideoActivity extends BaseActivity implements
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
-
         super.onDestroy();
     }
 
@@ -267,11 +266,8 @@ public class VideoActivity extends BaseActivity implements
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            alertDialog();
-        }
-        return super.onKeyDown(keyCode, event);
+    public void onBackPressed() {
+        alertDialog();
     }
 
     @SuppressLint("WrongViewCast")

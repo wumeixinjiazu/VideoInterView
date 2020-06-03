@@ -336,11 +336,10 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
                 break;
             case VCOM_QUEUEEVENT_HANGUPVIDEO:
                 //用户 坐席挂断
-//                finish();
                 isAgentHandup = true;
                 break;
             case VCOM_QUEUEEVENT_ENTERRESULT:
-                //进入队列
+                //进入队列(坐席拒绝或者呼叫超过一分钟回调这里)
                 if (iErrorCode == 0 && isAgentHandup) {
                     mTitleLayoutManager.setTitle(mVideoApplication.getSelectBussiness() + "-排队等待中");
                     queueButton.setText(getString(R.string.finish_queue));

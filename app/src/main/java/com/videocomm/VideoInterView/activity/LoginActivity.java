@@ -30,6 +30,7 @@ import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.CodeBean;
 import com.videocomm.VideoInterView.bean.LoginBean;
+import com.videocomm.VideoInterView.map.LocationUtil;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
 import com.videocomm.VideoInterView.utils.AppUtil;
 import com.videocomm.VideoInterView.utils.DialogUtil;
@@ -50,6 +51,7 @@ import okhttp3.Headers;
 import okhttp3.Response;
 
 import static com.videocomm.VideoInterView.Constant.LOGIN_PERMISSION_CODE;
+import static com.videocomm.VideoInterView.Constant.REQUEST_CODE_LOCATION;
 
 public class LoginActivity extends TitleActivity implements View.OnClickListener {
     /**
@@ -291,6 +293,10 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             case R.id.btn_login://登录
                 if (PermissionUtil.checkPermission(this, permissions, LOGIN_PERMISSION_CODE)) {
                     //成功
+                    if (!LocationUtil.isLocationEnabled(this)) {
+                        showLocationDialog();
+                        return;
+                    }
                     clearEditFocus();
                     checkDataAndLogin();
                 }
@@ -348,14 +354,27 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         new AlertDialog.Builder(this)
                 .setTitle("警告！")
                 .setMessage("请前往设置->应用->VideoTalk->权限中打开相关权限，否则功能无法正常运行！")
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        Uri uri = Uri.fromParts("package", getPackageName(), null);
-                        intent.setData(uri);
-                        startActivity(intent);
-                    }
+                .setPositiveButton("确定", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                }).show();
+    }
+
+    /**
+     * 提示用户自行打开权限
+     */
+    private void showLocationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("警告！")
+                .setMessage("请打开定位权限，否则功能无法正常运行！")
+                .setPositiveButton("确定", (dialog, which) -> {
+                    // 通用版
+
+                    // 回调版，这个可以在 onActivityResult 里判断是否成功开启定位服务
+                    startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
+                            REQUEST_CODE_LOCATION);
                 }).show();
     }
 

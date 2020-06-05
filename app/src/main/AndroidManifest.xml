@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <!-- android 9.0上使用前台服务，需要添加权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<!--    android10.0定位适配-->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <!--    联网权限-->
     <uses-permission android:name="android.permission.INTERNET" />
     <!--    相机权限-->
@@ -39,11 +41,13 @@
         android:roundIcon="@mipmap/ic_app"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
         <!-- 声明service组件 -->
         <service
             android:name="com.baidu.location.f"
+            android:foregroundServiceType="location"
             android:enabled="true"
             android:process=":remote" />
         <!-- AK鉴权 -->

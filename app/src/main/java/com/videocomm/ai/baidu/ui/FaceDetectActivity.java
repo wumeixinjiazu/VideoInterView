@@ -4,6 +4,8 @@
 package com.videocomm.ai.baidu.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -44,8 +46,10 @@ import com.baidu.idl.face.platform.utils.Base64Utils;
 import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
+import com.videocomm.VideoInterView.activity.LoginActivity;
 import com.videocomm.VideoInterView.bean.IdentityFaceBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
+import com.videocomm.VideoInterView.utils.AppUtil;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
@@ -467,6 +471,9 @@ public class FaceDetectActivity extends Activity implements
                 mFaceDetectRoundView.processDrawState(true);
                 onRefreshSuccessView(false);
                 break;
+            case Error_DetectTimeout:
+
+                break;
             default:
                 onRefreshTipsView(false, message);
                 mTipsBottomView.setText("");
@@ -474,6 +481,8 @@ public class FaceDetectActivity extends Activity implements
                 onRefreshSuccessView(false);
         }
     }
+
+
 
     private void onRefreshTipsView(boolean isAlert, String message) {
         if (isAlert) {

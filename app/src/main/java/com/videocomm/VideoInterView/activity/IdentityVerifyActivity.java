@@ -256,7 +256,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         tvIdentityState = findViewById(R.id.tv_identity_state);
 
         initRecoPath();
-
     }
 
     /**
@@ -298,13 +297,20 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
                 break;
             case R.id.btn_start_recognition://开始人脸识别
                 stepTwo.setVisibility(View.GONE);
-                setFaceConfig();
-                detectFragment = new FaceDetectFragment(mApplication);
-                getSupportFragmentManager().beginTransaction().add(R.id.content, detectFragment).show(detectFragment).commit();
+                startDetect();
                 break;
             default:
                 break;
         }
+    }
+
+    /**
+     * 开始人脸识别
+     */
+    private void startDetect() {
+        setFaceConfig();
+        detectFragment = new FaceDetectFragment(mApplication);
+        getSupportFragmentManager().beginTransaction().add(R.id.content, detectFragment).show(detectFragment).commit();
     }
 
     /**
@@ -428,6 +434,11 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
             progressCustom.setSelectIndex(2);
         }
         saveData();
+    }
+
+    public void restartDetect() {
+        getSupportFragmentManager().beginTransaction().remove(detectFragment).commit();
+        startDetect();
     }
 
     /**

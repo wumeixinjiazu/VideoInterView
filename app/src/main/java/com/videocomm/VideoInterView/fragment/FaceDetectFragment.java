@@ -1,5 +1,7 @@
 package com.videocomm.VideoInterView.fragment;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,9 +14,6 @@ import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -36,7 +35,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.baidu.aip.face.stat.Ast;
@@ -51,17 +49,13 @@ import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.VideoApplication;
 import com.videocomm.VideoInterView.activity.IdentityVerifyActivity;
+import com.videocomm.VideoInterView.activity.LoginActivity;
 import com.videocomm.VideoInterView.bean.IdentityFaceBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
-import com.videocomm.VideoInterView.camera.CameraManager;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
-import com.videocomm.VideoInterView.utils.DisplayUtil;
 import com.videocomm.VideoInterView.utils.HttpUtil;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
-import com.videocomm.VideoInterView.utils.ToastUtil;
-import com.videocomm.VideoInterView.view.CameraSurfaceView;
-import com.videocomm.VideoInterView.view.FaceScanView;
 import com.videocomm.VideoInterView.view.ProgressCustom;
 import com.videocomm.ai.baidu.ui.utils.CameraUtils;
 import com.videocomm.ai.baidu.ui.utils.VolumeUtils;
@@ -80,7 +74,6 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 import static com.videocomm.VideoInterView.Constant.FACE_RECO_PIC_PATH;
-import static com.videocomm.VideoInterView.Constant.RESULT_CODE_DETECT_ACT;
 
 /**
  * @author[wengCJ]
@@ -496,12 +489,35 @@ public class FaceDetectFragment extends Fragment implements SurfaceHolder.Callba
                 mFaceDetectRoundView.processDrawState(true);
                 onRefreshSuccessView(false);
                 break;
+            case Error_DetectTimeout:
+                //检测超时
+                showDialog();
+                break;
             default:
                 onRefreshTipsView(false, message);
                 mTipsBottomView.setText("");
                 mFaceDetectRoundView.processDrawState(true);
                 onRefreshSuccessView(false);
         }
+    }
+
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("检测超时，请问是否重试?")
+                .setCancelable(false)
+                .setPositiveButton("确定", (dialog, which) -> {
+                    IdentityVerifyActivity activity = (IdentityVerifyActivity) getActivity();
+                    assert activity != null;
+                    activity.restartDetect();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("取消", (dialog, which) -> {
+                    startActivity(new Intent(getActivity(), LoginActivity.class));
+                    getActivity().finish();
+                    dialog.dismiss();
+                });
+        Dialog dialog = builder.create();
+        dialog.show();
     }
 
     private void onRefreshTipsView(boolean isAlert, String message) {

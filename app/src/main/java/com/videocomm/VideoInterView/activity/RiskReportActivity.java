@@ -136,14 +136,15 @@ public class RiskReportActivity extends BaseActivity implements VComSDKEvent {
     }
 
     @Override
-    public void OnRemoteVideoData(String s, int i, int i1, long l, byte[] bytes, int i2, int i3, int i4, int i5, int i6) {
+    public void OnRemoteVideoData(String s, int i, int i1, int i2, byte[] bytes, int i3, int i4, int i5, int i6, int i7) {
 
     }
 
     @Override
-    public void OnRemoteAudioData(String s, int i, long l, byte[] bytes, int i1, int i2) {
+    public void OnRemoteAudioData(String s, int i, int i1, byte[] bytes, int i2, int i3) {
 
     }
+
 
     @Override
     public void OnRecordResult(String s, int i, int i1, String s1, int i2, int i3, String s2, String s3) {
@@ -156,7 +157,7 @@ public class RiskReportActivity extends BaseActivity implements VComSDKEvent {
     }
 
     @Override
-    public void OnSendFileStatus(int i, int i1, int i2, String s, long l, int i3, String s1) {
+    public void OnSendFileStatus(int i, int i1, int i2, String s, int i3, int i4, String s1) {
 
     }
 

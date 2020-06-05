@@ -4,8 +4,11 @@
 package com.videocomm.ai.baidu.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -42,6 +45,10 @@ import com.baidu.idl.face.platform.utils.APIUtils;
 import com.baidu.idl.face.platform.utils.Base64Utils;
 import com.baidu.idl.face.platform.utils.CameraPreviewUtils;
 import com.videocomm.VideoInterView.R;
+import com.videocomm.VideoInterView.activity.LoginActivity;
+import com.videocomm.VideoInterView.utils.AppUtil;
+import com.videocomm.VideoInterView.utils.DialogFactory;
+import com.videocomm.VideoInterView.utils.ToastUtil;
 import com.videocomm.ai.baidu.ui.utils.CameraUtils;
 import com.videocomm.ai.baidu.ui.utils.VolumeUtils;
 import com.videocomm.ai.baidu.ui.widget.FaceDetectRoundView;
@@ -138,27 +145,19 @@ public class FaceLivenessActivity extends Activity implements
         mSurfaceView.setLayoutParams(cameraFL);
         mFrameLayout.addView(mSurfaceView);
 
-        mRootView.findViewById(R.id.liveness_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        mRootView.findViewById(R.id.liveness_close).setOnClickListener(v -> onBackPressed());
 
         mFaceDetectRoundView = (FaceDetectRoundView) mRootView.findViewById(R.id.liveness_face_round);
         mCloseView = (ImageView) mRootView.findViewById(R.id.liveness_close);
         mSoundView = (ImageView) mRootView.findViewById(R.id.liveness_sound);
         mSoundView.setImageResource(mIsEnableSound ?
                 R.mipmap.ic_enable_sound_ext : R.mipmap.ic_disable_sound_ext);
-        mSoundView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mIsEnableSound = !mIsEnableSound;
-                mSoundView.setImageResource(mIsEnableSound ?
-                        R.mipmap.ic_enable_sound_ext : R.mipmap.ic_disable_sound_ext);
-                if (mILivenessStrategy != null) {
-                    mILivenessStrategy.setLivenessStrategySoundEnable(mIsEnableSound);
-                }
+        mSoundView.setOnClickListener(v -> {
+            mIsEnableSound = !mIsEnableSound;
+            mSoundView.setImageResource(mIsEnableSound ?
+                    R.mipmap.ic_enable_sound_ext : R.mipmap.ic_disable_sound_ext);
+            if (mILivenessStrategy != null) {
+                mILivenessStrategy.setLivenessStrategySoundEnable(mIsEnableSound);
             }
         });
         mTipsTopView = (TextView) mRootView.findViewById(R.id.liveness_top_tips);
@@ -474,12 +473,35 @@ public class FaceLivenessActivity extends Activity implements
                 mFaceDetectRoundView.processDrawState(true);
                 onRefreshSuccessView(false);
                 break;
+            case Error_DetectTimeout:
+                //检测超时
+                showDialog();
+                break;
             default:
                 onRefreshTipsView(false, message);
                 mTipsBottomView.setText("");
                 mFaceDetectRoundView.processDrawState(true);
                 onRefreshSuccessView(false);
         }
+    }
+
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("检测超时，请问是否重试?")
+                .setCancelable(false)
+                .setPositiveButton("确定", (dialog, which) -> {
+                    finish();
+                    AppUtil.restartActivity(FaceLivenessActivity.this);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("取消", (dialog, which) -> {
+                    startActivity(new Intent(FaceLivenessActivity.this, LoginActivity.class));
+                    finish();
+                    dialog.dismiss();
+                });
+        Dialog dialog = builder.create();
+        dialog.show();
+
     }
 
     private void onRefreshTipsView(boolean isAlert, String message) {

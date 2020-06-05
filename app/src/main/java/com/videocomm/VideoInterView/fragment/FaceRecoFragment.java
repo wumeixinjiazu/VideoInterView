@@ -75,7 +75,7 @@ public class FaceRecoFragment extends Fragment {
                         isTakePicture = true;
                     }
                     break;
-                case HANDLER_FACE_SUCCESS://人脸识别成功返回
+                case HANDLER_FACE_SUCCESS://人脸识别成功返回F
                     String content = (String) msg.obj;
                     isTakePicture = false;
 

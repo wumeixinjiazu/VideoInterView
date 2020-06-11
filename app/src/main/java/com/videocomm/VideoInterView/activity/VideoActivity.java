@@ -71,7 +71,11 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_HANGUPVIDEO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_CLIPMODE;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_WRITELOG;
 
-
+/**
+ * @author[wengcj]
+ * @version[创建日期，2020/6/8]
+ * @function[功能简介 ]
+ **/
 public class VideoActivity extends BaseActivity implements
         OnClickListener, OnTouchListener, VComSDKEvent {
 
@@ -147,9 +151,13 @@ public class VideoActivity extends BaseActivity implements
         sdkUnit.VCOM_SetVideoParamConfigure(0, 640, 480, 15, 450, 0);
 
         //设置本地视频
-        LocalMediaShow mLocalMediaShow = new LocalMediaShow(mSurfaceSelf, mVideoApplication.getUserCode());
-        mSurfaceSelf.getHolder().setSizeFromLayout();
-        mSurfaceSelf.getHolder().addCallback(mLocalMediaShow);
+//        LocalMediaShow mLocalMediaShow = new LocalMediaShow(mSurfaceSelf, mVideoApplication.getUserCode());
+//        mSurfaceSelf.getHolder().setSizeFromLayout();
+//        mSurfaceSelf.getHolder().addCallback(mLocalMediaShow);
+
+        mSurfaceSelf = sdkUnit.VCOM_SetLocalVideoRender(mVideoApplication.getUserCode(), mIntLocalChannelIndex, llSurfaceLocal, this);
+        mSurfaceSelf.setBackgroundColor(Color.TRANSPARENT);
+        sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, mIntLocalAudioOpen, mIntLocalVideoOpen, "");
     }
 
     /**
@@ -157,38 +165,24 @@ public class VideoActivity extends BaseActivity implements
      */
     private void initRemoteVideo(String remoteUserCode) {
         if (currentPeople < MAX_PEOPLE) {
-            mSurfaceRemote = new SurfaceView(this);
+//            mSurfaceRemote = new SurfaceView(this);
+//            mSurfaceRemote.setBackgroundColor(Color.TRANSPARENT);
+//            mSurfaceRemote.setZOrderOnTop(true);
+//            llSurfaceRemote.addView(mSurfaceRemote);
+//            //设置远程视频
+//            RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
+//            mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
+
+            targetUserName = remoteUserCode;
+            mSurfaceRemote = sdkUnit.VCOM_SetRemoteVideoRender(targetUserName, mIntRemoteChannelIndex, llSurfaceRemote, this);
+            mSurfaceRemote.setTag(targetUserName);//记录视频的用户id
             mSurfaceRemote.setBackgroundColor(Color.TRANSPARENT);
             mSurfaceRemote.setZOrderOnTop(true);
-            llSurfaceRemote.addView(mSurfaceRemote);
-            //设置远程视频
-            targetUserName = remoteUserCode;
-            RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
-            mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
+            sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen, "");
 
             isConnectRemote = true;
             currentPeople += 1;
         }
-    }
-
-    /**
-     * 更新时间
-     */
-    private void updateTime() {
-
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                switch (msg.what) {
-                    case MSG_TIMEUPDATE:
-                        mTxtTime.setText(StringUtil
-                                .getTimeShowString(videocallSeconds++));
-                        break;
-                }
-            }
-        };
-        initTimerShowTime();
     }
 
     @Override
@@ -278,13 +272,11 @@ public class VideoActivity extends BaseActivity implements
         llSurfaceOther = findViewById(R.id.ll_surface_other);
         llSurfaceRemote = findViewById(R.id.ll_surface_remote);
         llSurfaceLocal = findViewById(R.id.ll_surface_local);
-        mSurfaceSelf = findViewById(R.id.surface_local);
         mTxtTime = findViewById(R.id.txt_time);
         mBtnEndSession = findViewById(R.id.btn_endsession);
         ibChatSwitch = findViewById(R.id.ib_chat_switch);
 
         mBtnEndSession.setOnClickListener(this);
-        mSurfaceSelf.setOnClickListener(this);
         ibChatSwitch.setOnClickListener(this);
         llSurfaceOther.setOnClickListener(this);
         llSurfaceRemote.setOnClickListener(this);
@@ -406,16 +398,13 @@ public class VideoActivity extends BaseActivity implements
     }
 
     @Override
-    public void OnRemoteVideoData(String lpUserCode, int iChannelIndex, int iFrameType, long i64Timestamp, byte[] lpBuf, int iSizeInByte, int iWidth, int iHeight, int iFlags, int iRotation) {
-        Log.i(tag, "OnRemoteVideoData--lpUserCode:" + lpUserCode + "--iChannelIndex:" + iChannelIndex + "--iFrameType" + iFrameType);
-        Log.i(tag, "OnRemoteVideoData--i64Timestamp:" + i64Timestamp + "--lpBuf:" + lpBuf + "--iSizeInByte" + iSizeInByte);
-        Log.i(tag, "OnRemoteVideoData--iWidth:" + iWidth + "--iHeight:" + iHeight + "--iFlags" + iFlags + "--iRotation:" + iRotation);
+    public void OnRemoteVideoData(String s, int i, int i1, int i2, byte[] bytes, int i3, int i4, int i5, int i6, int i7) {
+
     }
 
     @Override
-    public void OnRemoteAudioData(String lpUserCode, int iChannelIndex, long i64Timestamp, byte[] lpBuf, int iSizeInByte, int iFlags) {
-        Log.i(tag, "OnRemoteAudioData--lpUserCode:" + lpUserCode + "--iChannelIndex:" + iChannelIndex + "--i64Timestamp" + i64Timestamp);
-        Log.i(tag, "OnRemoteAudioData--lpBuf:" + lpBuf + "--iSizeInByte:" + iSizeInByte + "--iFlags" + iFlags);
+    public void OnRemoteAudioData(String s, int i, int i1, byte[] bytes, int i2, int i3) {
+
     }
 
     @Override
@@ -430,8 +419,8 @@ public class VideoActivity extends BaseActivity implements
     }
 
     @Override
-    public void OnSendFileStatus(int iHandle, int iErrorCode, int iProgress, String lpFileName, long iFileLength, int iFlags, String lpParam) {
-        Log.i(tag, "OnSendFileStatus--iHandle:" + iHandle + "--iErrorCode:" + iErrorCode + "--iProgress" + iProgress + "--iFileLength" + iFileLength + "--iFlags" + iFlags + "--lpParam" + lpParam);
+    public void OnSendFileStatus(int i, int i1, int i2, String s, int i3, int i4, String s1) {
+
     }
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -444,7 +433,7 @@ public class VideoActivity extends BaseActivity implements
                 String status = JsonUtil.jsonToStr(lpMessage, "status");
                 if (status.equals("0")) {
                     String streamIndex = JsonUtil.jsonToStr(lpMessage, "mStreamIndex");
-                    if (streamIndex != null) {
+                    if (!TextUtils.isEmpty(streamIndex)) {
                         //设置裁剪
                         sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_SHRINK);
                         //设置横屏
@@ -455,12 +444,12 @@ public class VideoActivity extends BaseActivity implements
                         isHasOther = true;
                         //开启风险播放流
                         if (mSurfaceOther == null) {
-                            mSurfaceOther = new SurfaceView(VideoActivity.this);
-                            llSurfaceOther.addView(mSurfaceOther, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                            mSurfaceOther = sdkUnit.VCOM_SetRemoteVideoRender(targetUserName, iChannle, llSurfaceOther, VideoActivity.this);
+                            sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, iChannle, mIntRemoteVideoOpen, mIntRemoteAudioOpen, "");
+//                            mSurfaceOther.setZOrderMediaOverlay(true);
+                            //切换布局
+                            switchParentPreview();
                         }
-                        RemoteMediaControl(targetUserName, mIntRemoteVideoOpen, mIntRemoteAudioOpen, iChannle, mSurfaceOther);
-                        //切换布局
-                        switchParentPreview();
                     }
                 }
                 break;
@@ -538,110 +527,6 @@ public class VideoActivity extends BaseActivity implements
 
     }
 
-    public class LocalMediaShow implements SurfaceHolder.Callback {
-        private final SurfaceView mSurfaceBig;
-        private final String strUserCode;
-
-        LocalMediaShow(SurfaceView mSurfaceBig, String strUserCode) {
-            this.mSurfaceBig = mSurfaceBig;
-            this.strUserCode = strUserCode;
-        }
-
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            System.out.println("local surfaceChanged");
-        }
-
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-            System.out.println("local surfaceCreated");
-            LocalMediaControl(strUserCode, mIntLocalVideoOpen, mIntLocalAudioOpen, mSurfaceBig);
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            System.out.println("local surfaceDestroyed");
-        }
-    }
-
-    public class RemoteMediaShow implements SurfaceHolder.Callback {
-        private final String strUserCode;
-        private final SurfaceView mSurfaceView;
-        private final int iChannle;
-        private final int iVideo;
-        private final int iAudio;
-
-        /**
-         * @param mSurfaceView 需要显示的控件
-         * @param strUserCode  用户名
-         * @param iChannle     通道流
-         * @param iVideo       是否打开视频
-         * @param iAudio       是否打开音频
-         */
-        RemoteMediaShow(SurfaceView mSurfaceView, String strUserCode, int iChannle, int iVideo, int iAudio) {
-            this.mSurfaceView = mSurfaceView;
-            this.strUserCode = strUserCode;
-            this.iChannle = iChannle;
-            this.iVideo = iVideo;
-            this.iAudio = iAudio;
-        }
-
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            System.out.println("remote surfaceChanged");
-        }
-
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-            System.out.println("remote surfaceCreated");
-            RemoteMediaControl(strUserCode, iVideo, iAudio, iChannle, mSurfaceView);
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            System.out.println("remote surfaceDestroyed");
-        }
-    }
-
-    private void LocalMediaControl(String strUserCode, int iVideo, int iAudio, SurfaceView mSurfaceBig) {
-        if ((mIntLocalVideoClose == iVideo) && (mIntLocalAudioClose == iAudio)) {
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchL_CloseLocalMediaStream--0");
-            sdkUnit.VCOM_CloseLocalMediaStream(mIntLocalChannelIndex, "");
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchL_CloseLocalMediaStream--1");
-
-        } else {
-            if (iVideo == mIntLocalVideoOpen) {
-                sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchL_SetViewHolder-0");
-                sdkUnit.VCOM_SetViewHolder(strUserCode, mIntLocalChannelIndex, mSurfaceBig.getHolder());
-                sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchL_SetViewHolder--1");
-            }
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchL_OpenLocalMediaStream--0");
-            sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, iVideo, iAudio, "");
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchL_OpenLocalMediaStream--1");
-        }
-    }
-
-    private void RemoteMediaControl(String strUserCode, int iVideo, int iAudio, int iChannle, SurfaceView mSurfaceSmall) {
-        if ((mIntRemoteVideoClose == iVideo) && (mIntRemoteAudioClose == iAudio)) {
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchR_CloseRemoteMediaStream--0");
-            sdkUnit.VCOM_CloseRemoteMediaStream(strUserCode, iChannle, "");
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchR_CloseRemoteMediaStream--1");
-
-        } else {
-            if (iVideo == mIntRemoteVideoOpen) {
-                sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchR_SetViewHolder--0");
-                sdkUnit.VCOM_SetViewHolder(strUserCode, iChannle, mSurfaceSmall.getHolder());
-                sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchR_SetViewHolder--1");
-            }
-
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchR_GetRemoteMediaStream--0");
-            int remoteResult = sdkUnit.VCOM_GetRemoteMediaStream(strUserCode, iChannle, iVideo, iAudio, "");
-            sdkUnit.VCOM_SetSDKParamString(VCOM_SDK_PARAM_TYPE_WRITELOG, "Android--SwitchR_GetRemoteMediaStream--1");
-
-            Log.i(tag, "remoteResult:" + remoteResult + "-userCode:" + strUserCode);
-        }
-    }
-
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -658,7 +543,6 @@ public class VideoActivity extends BaseActivity implements
     private void switchParentPreview() {
         LocalFullScreenCameraPreview localLayout = findViewById(R.id.ll_surface_local);
         LocalFullScreenCameraPreview otherLayout = findViewById(R.id.ll_surface_other);
-
         ViewGroup.LayoutParams localLayoutLayoutParams = localLayout.getLayoutParams();
         ViewGroup.LayoutParams otherLayoutParams = otherLayout.getLayoutParams();
 
@@ -668,6 +552,7 @@ public class VideoActivity extends BaseActivity implements
 
         mSurfaceSelf.setZOrderOnTop(true);
         mSurfaceSelf.setTranslationX(0);
+
     }
 
     private int mLargeViewId = R.id.ll_surface_remote;

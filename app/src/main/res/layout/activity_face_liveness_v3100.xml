@@ -8,7 +8,7 @@
     <FrameLayout
         android:id="@+id/liveness_surface_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></FrameLayout>
+        android:layout_height="match_parent" />
 
     <com.videocomm.ai.baidu.ui.widget.FaceDetectRoundView
         android:id="@+id/liveness_face_round"

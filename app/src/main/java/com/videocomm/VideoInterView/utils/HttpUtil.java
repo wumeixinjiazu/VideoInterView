@@ -39,9 +39,16 @@ public class HttpUtil {
     private static final String tag = HttpUtil.class.getSimpleName();
 
     /**
+     * 服务器地址
+     */
+    private static final String URL_BASE = "http://poc.videocomm.net";
+//    private static final String URL_BASE = "http://113.200.102.157:8910";
+//    private static final String URL_BASE = "http://interview.videocomm.net";
+
+    /**
      * OCR访问的链接
      */
-    private static final String OCR_URL_HOST = "http://interview.videocomm.net/v1/client/ocr/";
+    private static final String OCR_URL_HOST = URL_BASE + "/v1/client/ocr/";
     private static final String OCR_URL_PATH = "/uploadIdCard";
 
     /**
@@ -50,7 +57,6 @@ public class HttpUtil {
     public static final String OCR_SIZE_FACE = "front";
     public static final String OCR_SIZE_BACK = "back";
 
-    private static final String URL_BASE = "http://interview.videocomm.net";
     //图形验证码接口 GET
     private static final String GET_IMAGE_CAPTCHA = URL_BASE + "/captcha/getNumImageCaptcha?code=0.3223";
     //发送信息给用户接口 GET
@@ -201,6 +207,8 @@ public class HttpUtil {
         RequestBody requestBody = new MultipartBody.Builder()
                 .addFormDataPart("token", token)
                 .addFormDataPart("phoneNumber", userPhone)
+                .addFormDataPart("tradeNo", "")
+                .addFormDataPart("fileType", "")
                 .addFormDataPart("appId", appid)
                 .addFormDataPart("file", file.getName(),
                         RequestBody.create(MediaType.parse("multipart/form-data"), file))
@@ -230,7 +238,9 @@ public class HttpUtil {
         String token = SpUtil.getInstance().getString(SpUtil.TOKEN, "");
         String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "");
         String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
-        String data = "{\"businessCode\":\"Biz01\",\"integratorCode\":\"QuDao01\",\"productCode\":\"" + productCode + "\"}";
+        String integrator = SpUtil.getInstance().getString(SpUtil.INTEGRATORCODE, "QuDao01");
+        String business = SpUtil.getInstance().getString(SpUtil.BUSINESSCODE, "Biz01");
+        String data = "{\"businessCode\":\"" + business + "\",\"integratorCode\":\"" + integrator + "\",\"productCode\":\"" + productCode + "\"}";
         RequestBody requestBody = new MultipartBody.Builder()
                 .addFormDataPart("token", token)
                 .addFormDataPart("phoneNumber", userPhone)

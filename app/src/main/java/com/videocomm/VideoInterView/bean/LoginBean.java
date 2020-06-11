@@ -7,10 +7,9 @@ package com.videocomm.VideoInterView.bean;
  **/
 public class LoginBean {
 
-
     /**
      * msg : 登录成功
-     * content : {"appId":"","phoneNumber":"13570125462","token":"d3649810-9ee7-4915-bc7e-10fe7d57b781"}
+     * content : {"configData":{"port":8080,"integratorCode":"QuDao01","businessCode":"Biz01","Server":"demo.videocomm.net"},"appId":"37245ec9-6ff3-4a0a-bd5b-4ad896be0d61","phoneNumber":"13570125462","token":"d5a7209e-faf2-48e0-8a76-04ae93957aaa"}
      * errorcode : 0
      */
 
@@ -44,14 +43,24 @@ public class LoginBean {
 
     public static class ContentBean {
         /**
-         * appId :
+         * configData : {"port":8080,"integratorCode":"QuDao01","businessCode":"Biz01","Server":"demo.videocomm.net"}
+         * appId : 37245ec9-6ff3-4a0a-bd5b-4ad896be0d61
          * phoneNumber : 13570125462
-         * token : d3649810-9ee7-4915-bc7e-10fe7d57b781
+         * token : d5a7209e-faf2-48e0-8a76-04ae93957aaa
          */
 
+        private ConfigDataBean configData;
         private String appId;
         private String phoneNumber;
         private String token;
+
+        public ConfigDataBean getConfigData() {
+            return configData;
+        }
+
+        public void setConfigData(ConfigDataBean configData) {
+            this.configData = configData;
+        }
 
         public String getAppId() {
             return appId;
@@ -75,6 +84,52 @@ public class LoginBean {
 
         public void setToken(String token) {
             this.token = token;
+        }
+
+        public static class ConfigDataBean {
+            /**
+             * port : 8080
+             * integratorCode : QuDao01
+             * businessCode : Biz01
+             * Server : demo.videocomm.net
+             */
+
+            private int port;
+            private String integratorCode;
+            private String businessCode;
+            private String Server;
+
+            public int getPort() {
+                return port;
+            }
+
+            public void setPort(int port) {
+                this.port = port;
+            }
+
+            public String getIntegratorCode() {
+                return integratorCode;
+            }
+
+            public void setIntegratorCode(String integratorCode) {
+                this.integratorCode = integratorCode;
+            }
+
+            public String getBusinessCode() {
+                return businessCode;
+            }
+
+            public void setBusinessCode(String businessCode) {
+                this.businessCode = businessCode;
+            }
+
+            public String getServer() {
+                return Server;
+            }
+
+            public void setServer(String Server) {
+                this.Server = Server;
+            }
         }
     }
 }

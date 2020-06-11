@@ -26,6 +26,8 @@ public class SpUtil {
     public static final String TOKEN = "token";
     public static final String USERPHONE = "userphone";
     public static final String APPID = "appid";
+    public static final String INTEGRATORCODE = "integratorCode";
+    public static final String BUSINESSCODE = "businessCode";
 
 
     private SpUtil() {
@@ -70,9 +72,11 @@ public class SpUtil {
         return mSp.getBoolean(key, def);
     }
 
-
     public int getInt(String key) {
         return mSp.getInt(key, 0);
+    }
+    public int getInt(String key, int defValue){
+        return mSp.getInt(key, defValue);
     }
 
 

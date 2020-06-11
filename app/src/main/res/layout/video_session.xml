@@ -5,23 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/iv_video_bg"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:src="@drawable/bg_video" />
-
     <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
         android:id="@+id/ll_surface_local"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <SurfaceView
-            android:id="@+id/surface_local"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
     </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
 
     <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
@@ -32,6 +21,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="5dp"
         android:orientation="vertical"
+        android:gravity="center_vertical"
         app:layout_constraintDimensionRatio="h,3:4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -43,6 +33,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="5dp"
         android:orientation="vertical"
+        android:gravity="center_vertical"
         app:layout_constraintDimensionRatio="h,3:4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ll_surface_remote" />

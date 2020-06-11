@@ -1,7 +1,10 @@
 package com.videocomm.VideoInterView.activity;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +15,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -25,6 +29,7 @@ import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.adapter.NetworkAdapter;
 import com.videocomm.VideoInterView.bean.NetworkBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
+import com.videocomm.VideoInterView.map.LocationUtil;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
 import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.HttpUtil;
@@ -39,6 +44,8 @@ import java.util.List;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
+
+import static com.videocomm.VideoInterView.Constant.REQUEST_CODE_CHOOSE_ACT;
 
 /**
  * @author[wengCJ]
@@ -58,6 +65,7 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
     private LocationClient mLocationClient;
     private String[] cityList;
     private ImageView ivNoData;
+    private Dialog mDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,12 +75,8 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
         initView();
         //请求数据
         requestData(tvChooseCityIn.getText().toString());
+        //初始化并定位
         initLocationOption();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
     }
 
 
@@ -213,23 +217,32 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
     public void startRecordParamsActivity(int type) {
         Intent intent = new Intent(ChooseNetworkActivity.this, ParamsActivity.class);
         intent.putExtra("type", type);
-        this.startActivityForResult(intent, Constant.REQUEST_CODE_CHOOSE_ACT);
+        this.startActivityForResult(intent, REQUEST_CODE_CHOOSE_ACT);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (data != null) {
-            String city = data.getStringExtra("content");
-            tvChooseCityIn.setText(city);
-            requestData(city);
+        switch (requestCode) {
+            case REQUEST_CODE_CHOOSE_ACT:
+                if (data != null) {
+                    String city = data.getStringExtra("content");
+                    tvChooseCityIn.setText(city);
+                    requestData(city);
+                }
+                break;
         }
+
     }
 
     /**
      * 初始化定位参数配置
      */
     private void initLocationOption() {
+        //适配安卓10需要打开位置定位才能获取定位
+        if (!LocationUtil.isLocationEnabled(this)) {
+            return;
+        }
 //定位服务的客户端。宿主程序在客户端声明此类，并调用，目前只支持在主线程中启动
         mLocationClient = new LocationClient(getApplicationContext());
 //声明LocationClient类实例并配置定位参数
@@ -346,13 +359,21 @@ public class ChooseNetworkActivity extends TitleActivity implements View.OnClick
             }
         }
 
-        ToastUtil.show("暂无" + city + "网点");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
     }
 
     @Override
     public void onBackPressed() {
-        DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+        mDialog = DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
             finish();
-        }).show();
+        });
+        mDialog.show();
     }
 }

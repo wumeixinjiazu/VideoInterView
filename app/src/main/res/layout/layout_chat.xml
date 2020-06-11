@@ -17,23 +17,32 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
 
         <EditText
             android:id="@+id/et_input_text"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
-            android:hint="说点什么..."
+            android:background="@drawable/bg_white_rect"
+            android:hint="请输入发送内容"
             android:maxLength="20"
             android:maxLines="2"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white" />
+            android:padding="5dp"
+            android:textSize="13dp"
+            android:textColor="@color/gray_e4"
+            android:textColorHint="@color/gray_e4" />
 
         <Button
             android:id="@+id/btn_send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/bg_white_rect_15"
             android:text="发送" />
 
     </LinearLayout>

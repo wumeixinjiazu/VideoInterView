@@ -30,6 +30,7 @@ import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.activity.base.TitleActivity;
 import com.videocomm.VideoInterView.bean.CodeBean;
 import com.videocomm.VideoInterView.bean.LoginBean;
+import com.videocomm.VideoInterView.map.LocationUtil;
 import com.videocomm.VideoInterView.simpleListener.SimpleTextWatcher;
 import com.videocomm.VideoInterView.utils.AppUtil;
 import com.videocomm.VideoInterView.utils.DialogUtil;
@@ -50,6 +51,7 @@ import okhttp3.Headers;
 import okhttp3.Response;
 
 import static com.videocomm.VideoInterView.Constant.LOGIN_PERMISSION_CODE;
+import static com.videocomm.VideoInterView.Constant.REQUEST_CODE_LOCATION;
 
 public class LoginActivity extends TitleActivity implements View.OnClickListener {
     /**
@@ -67,14 +69,14 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.READ_PHONE_STATE};
 
+    private EditText etCode;
     private EditText etPhone;
     private EditText etImageCode;
-    private EditText etCode;
+    private ImageView ivCodeClean;
     private ImageView ivPhoneClean;
     private ImageView ivImageClean;
-    private ImageView ivCodeClean;
-    private Button btnLogin;
     private ImageView ivImageCodePic;
+    private Button btnLogin;
     private TextView tvSendCode;
 
     private static String ssionId;//保存Session
@@ -89,7 +91,6 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
 
     private static long time;//记录当前时间
     private Dialog mLoadingDialog;
-    private TextView tvAppVersion;
     private VComMediaSDK sdkUnit;
 
     static class LoginHandler extends Handler {
@@ -137,9 +138,14 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
                     if (bean.getErrorcode() != 0) {
                         ToastUtil.show(bean.getMsg());
                     } else if (bean.getErrorcode() == 0) {
+                        //保存登录返回信息
                         SpUtil.getInstance().saveString(SpUtil.TOKEN, bean.getContent().getToken());
                         SpUtil.getInstance().saveString(SpUtil.USERPHONE, bean.getContent().getPhoneNumber());
                         SpUtil.getInstance().saveString(SpUtil.APPID, bean.getContent().getAppId());
+                        SpUtil.getInstance().saveString(SpUtil.SERVERADDR, bean.getContent().getConfigData().getServer());
+                        SpUtil.getInstance().saveString(SpUtil.INTEGRATORCODE, bean.getContent().getConfigData().getIntegratorCode());
+                        SpUtil.getInstance().saveString(SpUtil.BUSINESSCODE, bean.getContent().getConfigData().getBusinessCode());
+                        SpUtil.getInstance().saveInt(SpUtil.SERVERPORT, bean.getContent().getConfigData().getPort());
                         //4.启动页面
                         activity.startActivity(new Intent(activity, ChooseNetworkActivity.class));
                         ToastUtil.show(activity.getString(R.string.login_success));
@@ -182,7 +188,7 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         btnLogin = findViewById(R.id.btn_login);
         tvSendCode = findViewById(R.id.tv_send_code);
         ivImageCodePic = findViewById(R.id.iv_image_code_pic);
-        tvAppVersion = findViewById(R.id.tv_app_version);
+        TextView tvAppVersion = findViewById(R.id.tv_app_version);
         etPhone.setOnClickListener(this);
         etImageCode.setOnClickListener(this);
         etCode.setOnClickListener(this);
@@ -291,6 +297,10 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
             case R.id.btn_login://登录
                 if (PermissionUtil.checkPermission(this, permissions, LOGIN_PERMISSION_CODE)) {
                     //成功
+                    if (!LocationUtil.isLocationEnabled(this)) {
+                        showLocationDialog();
+                        return;
+                    }
                     clearEditFocus();
                     checkDataAndLogin();
                 }
@@ -347,15 +357,28 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
     private void showWaringDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("警告！")
-                .setMessage("请前往设置->应用->VideoTalk->权限中打开相关权限，否则功能无法正常运行！")
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        Uri uri = Uri.fromParts("package", getPackageName(), null);
-                        intent.setData(uri);
-                        startActivity(intent);
-                    }
+                .setMessage("请前往设置->应用->AI双录->权限中打开相关权限，否则功能无法正常运行！")
+                .setPositiveButton("确定", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                }).show();
+    }
+
+    /**
+     * 提示用户自行打开权限
+     */
+    private void showLocationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("警告！")
+                .setMessage("请打开定位权限，否则功能无法正常运行！")
+                .setPositiveButton("确定", (dialog, which) -> {
+                    // 通用版
+
+                    // 回调版，这个可以在 onActivityResult 里判断是否成功开启定位服务
+                    startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
+                            REQUEST_CODE_LOCATION);
                 }).show();
     }
 

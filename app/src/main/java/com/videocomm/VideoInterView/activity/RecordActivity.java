@@ -1,5 +1,6 @@
 package com.videocomm.VideoInterView.activity;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -87,6 +88,7 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     private static final int ASK_STATE_THREE = 3;
     private int ASK_STATE = ASK_STATE_ONE;//记录现在提问第几个问题
     private Integer mediafileid;//SDK播放音频ID
+    private Dialog mDialog;
 
     class RecordHandler extends Handler {
         @Override
@@ -161,7 +163,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         String userPhone = SpUtil.getInstance().getString(SpUtil.USERPHONE, "VideoInterView");
 
         sdkUnit.VCOM_SetUserConfig(userPhone, userPhone, "", "", "");
-        sdkUnit.VCOM_Login("139.9.171.70:8080", 0, "");
+        String serverAndPort = SpUtil.getInstance().getString(SpUtil.SERVERADDR) + ":" + SpUtil.getInstance().getInt(SpUtil.SERVERPORT);
+        sdkUnit.VCOM_Login(serverAndPort, 0, "");
     }
 
     /**
@@ -172,6 +175,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         this.lpUserCode = lpUserCode;
         Log.i(tag, "OnLoginSystem--lpUserCode:" + lpUserCode + "--iErrorCode:" + iErrorCode + "--iReConnect" + iReConnect);
         mVideoApplication.setUserCode(lpUserCode);
+        //设置标清(登录成功后才能设置)
+        sdkUnit.VCOM_SetVideoParamConfigure(0, 640, 480, 15, 450, 0);
         sdkUnit.VCOM_JoinConference("", "", "");//会议号为空 表示随机
     }
 
@@ -212,16 +217,13 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     }
 
     @Override
-    public void OnRemoteVideoData(String lpUserCode, int iChannelIndex, int iFrameType, long i64Timestamp, byte[] lpBuf, int iSizeInByte, int iWidth, int iHeight, int iFlags, int iRotation) {
-        Log.i(tag, "OnRemoteVideoData--lpUserCode:" + lpUserCode + "--iChannelIndex:" + iChannelIndex + "--iFrameType" + iFrameType);
-        Log.i(tag, "OnRemoteVideoData--i64Timestamp:" + i64Timestamp + "--lpBuf:" + lpBuf + "--iSizeInByte" + iSizeInByte);
-        Log.i(tag, "OnRemoteVideoData--iWidth:" + iWidth + "--iHeight:" + iHeight + "--iFlags" + iFlags + "--iRotation:" + iRotation);
+    public void OnRemoteVideoData(String s, int i, int i1, int i2, byte[] bytes, int i3, int i4, int i5, int i6, int i7) {
+
     }
 
     @Override
-    public void OnRemoteAudioData(String lpUserCode, int iChannelIndex, long i64Timestamp, byte[] lpBuf, int iSizeInByte, int iFlags) {
-        Log.i(tag, "OnRemoteAudioData--lpUserCode:" + lpUserCode + "--iChannelIndex:" + iChannelIndex + "--i64Timestamp" + i64Timestamp);
-        Log.i(tag, "OnRemoteAudioData--lpBuf:" + lpBuf + "--iSizeInByte:" + iSizeInByte + "--iFlags" + iFlags);
+    public void OnRemoteAudioData(String s, int i, int i1, byte[] bytes, int i2, int i3) {
+
     }
 
     @Override
@@ -260,8 +262,8 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     }
 
     @Override
-    public void OnSendFileStatus(int iHandle, int iErrorCode, int iProgress, String lpFileName, long iFileLength, int iFlags, String lpParam) {
-        Log.i(tag, "OnSendFileStatus--iHandle:" + iHandle + "--iErrorCode:" + iErrorCode + "--iProgress" + iProgress + "--iFileLength" + iFileLength + "--iFlags" + iFlags + "--lpParam" + lpParam);
+    public void OnSendFileStatus(int i, int i1, int i2, String s, int i3, int i4, String s1) {
+
     }
 
     @Override
@@ -316,16 +318,16 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
 
     }
 
-    //AI 能力
+    //AI 能力事件回调
     @Override
     public void OnAIAbilityEvent(int iEventType, int iErrorCode, String lpUserData) {
         Log.i(tag, "OnAIAbilityEvent--iEventType:" + iEventType + "--iErrorCode:" + iErrorCode + "--lpUserData" + lpUserData);
-        sdkUnit.VCOM_StopRecord(iRecordId);
-        isSuccess = false;
+//        sdkUnit.VCOM_StopRecord(iRecordId);
+//        isSuccess = false;
         switch (iEventType) {
-            case VCOM_AIABILITY_EVENT_PROCESSING:
+            case VCOM_AIABILITY_EVENT_PROCESSING://AI事件处理中
                 break;
-            case VCOM_AIABILITY_EVENT_RESULT://  TTS / ASR
+            case VCOM_AIABILITY_EVENT_RESULT://  TTS / ASR AI事件处理结果
                 String taskid = JsonUtil.jsonToStr(lpUserData, "taskid");
                 Log.d(tag, "taskid:" + taskid);
 
@@ -580,16 +582,18 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         mHandler.removeCallbacksAndMessages(null);
         mHandler = null;
         sdkUnit.RemoveSDKEvent(this);
+        if (mDialog!=null && mDialog.isShowing()) { mDialog.dismiss(); }
     }
 
     @Override
     public void onBackPressed() {
-        DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+        mDialog = DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
             //手动退出
             isSelfExit = true;
             sdkUnit.VCOM_LeaveConference();
             sdkUnit.VCOM_Logout();
             finish();
-        }).show();
+        });
+        mDialog.show();
     }
 }

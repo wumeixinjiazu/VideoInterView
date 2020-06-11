@@ -34,7 +34,6 @@ import com.videocomm.VideoInterView.bean.IdCardBackBean;
 import com.videocomm.VideoInterView.bean.TradeInfo;
 import com.videocomm.VideoInterView.dlgfragment.PicChooseFragment;
 import com.videocomm.VideoInterView.fragment.FaceDetectFragment;
-import com.videocomm.VideoInterView.fragment.FaceRecoFragment;
 import com.videocomm.VideoInterView.utils.BitmapUtil;
 import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.DialogUtil;
@@ -45,7 +44,6 @@ import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
 import com.videocomm.VideoInterView.view.ProgressCustom;
-import com.videocomm.ai.baidu.ui.FaceDetectActivity;
 import com.videocomm.ai.baidu.ui.FaceLivenessActivity;
 
 import java.io.File;
@@ -130,6 +128,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     private ImageView ivIdentityState;
     private TextView tvIdentityState;
     private FaceDetectFragment detectFragment;
+    private Dialog mExitDialog;
 
     static class IdentityHandler extends Handler {
 
@@ -256,7 +255,6 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         tvIdentityState = findViewById(R.id.tv_identity_state);
 
         initRecoPath();
-
     }
 
     /**
@@ -276,6 +274,7 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         switch (v.getId()) {
             case R.id.btn_recognition_next://识别身份证
                 readFront();
+//                writeData();
                 break;
             case R.id.btn_info_next://下一步
                 checkData();
@@ -298,13 +297,20 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
                 break;
             case R.id.btn_start_recognition://开始人脸识别
                 stepTwo.setVisibility(View.GONE);
-                setFaceConfig();
-                detectFragment = new FaceDetectFragment(mApplication);
-                getSupportFragmentManager().beginTransaction().add(R.id.content, detectFragment).show(detectFragment).commit();
+                startDetect();
                 break;
             default:
                 break;
         }
+    }
+
+    /**
+     * 开始人脸识别
+     */
+    private void startDetect() {
+        setFaceConfig();
+        detectFragment = new FaceDetectFragment(mApplication);
+        getSupportFragmentManager().beginTransaction().add(R.id.content, detectFragment).show(detectFragment).commit();
     }
 
     /**
@@ -414,20 +420,34 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
 
     /**
      * 下一步 根据活体检测是否打开
+     * @param isDetectState 是否人体识别成功
      */
-    public void next() {
+    public void next(boolean isDetectState) {
         getSupportFragmentManager().beginTransaction().remove(detectFragment).commit();
-
-        boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
-        if (livingState) {
-            //开始活体检测
-            initLivenessAI();
-        } else {
-            //验证成功
+        if (isDetectState){
+            boolean livingState = SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true);
+            if (livingState) {
+                //开始活体检测
+                initLivenessAI();
+            } else {
+                //验证成功
+                stepThree.setVisibility(View.VISIBLE);
+                progressCustom.setSelectIndex(2);
+            }
+            saveData();
+        }else {
+            //人脸识别失败
             stepThree.setVisibility(View.VISIBLE);
             progressCustom.setSelectIndex(2);
+            ivIdentityState.setBackgroundResource(R.drawable.ic_result_false);
+            tvIdentityState.setText("人脸识别失败");
         }
-        saveData();
+
+    }
+
+    public void restartDetect() {
+        getSupportFragmentManager().beginTransaction().remove(detectFragment).commit();
+        startDetect();
     }
 
     /**
@@ -535,6 +555,27 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     }
 
     /**
+     * 写入数据
+     */
+    private void writeData() {
+        runOnUiThread(() -> {
+            //隐藏第一步 显示第二步
+            stepOne.setVisibility(View.GONE);
+            stepOneTwo.setVisibility(View.VISIBLE);
+            //设置数据
+            etName.setText("王仪清");
+            etIdcard.setText("360121199306216112");
+            etSex.setText("男");
+            etBirth.setText("19930621");
+            etNation.setText("汉");
+            etAddress.setText("江西省南昌市南昌县广福镇潭岗村王家自然村37号");
+            etSignOffice.setText("南昌县公安局");
+            etStartTime.setText("20100820");
+            etEndTime.setText("20200820");
+        });
+    }
+
+    /**
      * 保存数据
      */
     private void saveData() {
@@ -551,9 +592,12 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         TradeInfo.PicListBean picListBean1 = new TradeInfo.PicListBean();
         picListBean1.setPic(backBeanContent.getBackIdCardUrl());
         picListBean1.setType(16);
+        List<TradeInfo.PicListBean> picList = mApplication.getPicList();
+        if (picList != null) {
+            picList.add(picListBean);
+            picList.add(picListBean1);
+        }
 
-        mApplication.getPicList().add(picListBean);
-        mApplication.getPicList().add(picListBean1);
     }
 
     @Override
@@ -737,6 +781,9 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
     protected void onDestroy() {
         deletePic();
         super.onDestroy();
+        if (mExitDialog != null && mExitDialog.isShowing()) {
+            mExitDialog.dismiss();
+        }
         mHandler.removeCallbacksAndMessages(null);
         mHandler = null;
     }
@@ -792,9 +839,10 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
             stepOneTwo.setVisibility(View.INVISIBLE);
             stepOne.setVisibility(View.VISIBLE);
         } else {
-            DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
+            mExitDialog = DialogFactory.getDialog(DialogFactory.DIALOGID_EXIT_ACT, this, v -> {
                 finish();
-            }).show();
+            });
+            mExitDialog.show();
         }
     }
 }

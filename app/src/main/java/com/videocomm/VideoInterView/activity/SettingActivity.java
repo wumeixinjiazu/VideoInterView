@@ -120,7 +120,7 @@ public class SettingActivity extends TitleActivity implements View.OnClickListen
 
     private void initData() {
         etServerAddress.setText(SpUtil.getInstance().getString(SpUtil.SERVERADDR, getResources().getString(R.string.default_server_addr)));
-        etServerPort.setText(SpUtil.getInstance().getString(SpUtil.SERVERPORT, getResources().getString(R.string.default_server_port)));
+        etServerPort.setText(SpUtil.getInstance().getInt(SpUtil.SERVERPORT,8080)+"");
         swLivingCheck.setChecked(SpUtil.getInstance().getBoolean(SpUtil.LIVINGCHECKSTATE, true));
         swRiskReport.setChecked(SpUtil.getInstance().getBoolean(SpUtil.RISKREPORTSTATE, true));
     }
@@ -146,7 +146,7 @@ public class SettingActivity extends TitleActivity implements View.OnClickListen
      */
     private void saveData() {
         SpUtil.getInstance().saveString(SpUtil.SERVERADDR, etServerAddress.getText().toString());
-        SpUtil.getInstance().saveString(SpUtil.SERVERPORT, etServerPort.getText().toString());
+        SpUtil.getInstance().saveInt(SpUtil.SERVERPORT, Integer.parseInt(etServerPort.getText().toString()));
         SpUtil.getInstance().saveBoolean(SpUtil.LIVINGCHECKSTATE, livingCheckState);
         SpUtil.getInstance().saveBoolean(SpUtil.RISKREPORTSTATE, riskReportState);
     }

@@ -8,14 +8,11 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.text.Html;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -28,21 +25,16 @@ import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.LogUtil;
 import com.videocomm.VideoInterView.utils.SpUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
-import com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview;
+import com.videocomm.VideoInterView.view.LocalCameraPreview;
 import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKEvent;
 
-import static com.videocomm.VideoInterView.Constant.LOCALSCENE_OPEN;
-import static com.videocomm.VideoInterView.Constant.mIntLocalAudioClose;
 import static com.videocomm.VideoInterView.Constant.mIntLocalAudioOpen;
 import static com.videocomm.VideoInterView.Constant.mIntLocalChannelIndex;
-import static com.videocomm.VideoInterView.Constant.mIntLocalVideoClose;
 import static com.videocomm.VideoInterView.Constant.mIntLocalVideoOpen;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_AIABILITY_ASR_AWORD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_AIABILITY_EVENT_PROCESSING;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_AIABILITY_EVENT_RESULT;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_AIABILITY_TTS;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_EXIT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_JOIN;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_LOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_PLAY;
@@ -50,9 +42,7 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_STOP;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_CMD_UNLOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_LOAD;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_STOP;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_ENTERRESULT;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_GUID;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCENE;
 
 /**
  * @author[wengCJ]
@@ -62,7 +52,6 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_LOCALSCEN
 public class RecordActivity extends TitleActivity implements VComSDKEvent, View.OnClickListener {
 
     private VComMediaSDK sdkUnit;
-    private SurfaceView mLocalSurface;
     private VideoApplication mVideoApplication;
     private Chronometer chronometer;// 计时器
     private ImageButton btnRecord;
@@ -134,21 +123,16 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
 
         btnRecord.setOnClickListener(this);
         //获取唯一识别号
-        ASRUuid = sdkUnit.VCOM_GetSDKParamString(7);
+        ASRUuid = sdkUnit.VCOM_GetSDKParamString(VCOM_SDK_PARAM_TYPE_GUID);
     }
 
     /**
      * 初始化本地视频
      */
     private void initVideo() {
-        LocalFullScreenCameraPreview llLocal = findViewById(R.id.ll_local);
-        mLocalSurface = new SurfaceView(this);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mLocalSurface.setLayoutParams(params);
-        llLocal.addView(mLocalSurface);
-
-        LocalMediaShow mLocalMediaShow = new LocalMediaShow(mLocalSurface, lpUserCode);
-        mLocalSurface.getHolder().addCallback(mLocalMediaShow);
+        LocalCameraPreview llLocal = findViewById(R.id.ll_local);
+        SurfaceView mLocalSurface = sdkUnit.VCOM_SetLocalVideoRender(lpUserCode, mIntLocalChannelIndex, llLocal, this);
+        sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, mIntLocalVideoOpen, mIntLocalAudioOpen, "");
     }
 
     /**
@@ -473,7 +457,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
     private void playTTS(String text) {
         tvQuestion.setText(text);
         String tts = GenerateLoadConfig(text);
-        Log.d(tag, tts);
         String loadResult = sdkUnit.VCOM_MediaFileControl(VCOM_MEDIAFILE_CMD_LOAD, 0, tts);
         Log.d(tag, loadResult);
         String resultCode = JsonUtil.jsonToStr(loadResult, "errorcode");
@@ -524,44 +507,6 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         return playJson;
     }
 
-    public class LocalMediaShow implements SurfaceHolder.Callback {
-        private final SurfaceView mSurfaceBig;
-        private final String strUserCode;
-
-        LocalMediaShow(SurfaceView mSurfaceBig, String strUserCode) {
-            this.mSurfaceBig = mSurfaceBig;
-            this.strUserCode = strUserCode;
-        }
-
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            System.out.println("local surfaceChanged");
-        }
-
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-            System.out.println("local surfaceCreated");
-            LocalMediaControl(strUserCode, mIntLocalVideoOpen, mIntLocalAudioOpen, mSurfaceBig);
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            System.out.println("local surfaceDestroyed");
-        }
-    }
-
-    private void LocalMediaControl(String strUserCode, int iVideo, int iAudio, SurfaceView mSurfaceBig) {
-        if ((mIntLocalVideoClose == iVideo) && (mIntLocalAudioClose == iAudio)) {
-            sdkUnit.VCOM_CloseLocalMediaStream(mIntLocalChannelIndex, "");
-
-        } else {
-            if (iVideo == mIntLocalVideoOpen) {
-                sdkUnit.VCOM_SetViewHolder(strUserCode, mIntLocalChannelIndex, mSurfaceBig.getHolder());
-            }
-            sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, iVideo, iAudio, "");
-        }
-    }
-
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -582,7 +527,9 @@ public class RecordActivity extends TitleActivity implements VComSDKEvent, View.
         mHandler.removeCallbacksAndMessages(null);
         mHandler = null;
         sdkUnit.RemoveSDKEvent(this);
-        if (mDialog!=null && mDialog.isShowing()) { mDialog.dismiss(); }
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
     }
 
     @Override

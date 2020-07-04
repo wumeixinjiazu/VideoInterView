@@ -73,13 +73,7 @@ public class DialogFactory {
 
         buttonQuit.setOnClickListener(onClickListener);
 
-        buttonCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-                dialog.dismiss();
-            }
-        });
+        buttonCancel.setOnClickListener(v -> dialog.dismiss());
         initDialogTitle(view, content);
         dialog.setContentView(view);
     }

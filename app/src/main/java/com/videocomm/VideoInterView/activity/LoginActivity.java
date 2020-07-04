@@ -238,26 +238,11 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         });
 
         //etPhone 焦点监听
-        etPhone.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                ivPhoneClean.setVisibility(hasFocus && etPhone.getText().length() > 0 ? View.VISIBLE : View.GONE);
-            }
-        });
+        etPhone.setOnFocusChangeListener((v, hasFocus) -> ivPhoneClean.setVisibility(hasFocus && etPhone.getText().length() > 0 ? View.VISIBLE : View.GONE));
 
-        etImageCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                ivImageClean.setVisibility(hasFocus && etImageCode.getText().length() > 0 ? View.VISIBLE : View.GONE);
-            }
-        });
+        etImageCode.setOnFocusChangeListener((v, hasFocus) -> ivImageClean.setVisibility(hasFocus && etImageCode.getText().length() > 0 ? View.VISIBLE : View.GONE));
 
-        etCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                ivCodeClean.setVisibility(hasFocus && etCode.getText().length() > 0 ? View.VISIBLE : View.GONE);
-            }
-        });
+        etCode.setOnFocusChangeListener((v, hasFocus) -> ivCodeClean.setVisibility(hasFocus && etCode.getText().length() > 0 ? View.VISIBLE : View.GONE));
 
         //监听软键盘操作
         etCode.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -430,7 +415,6 @@ public class LoginActivity extends TitleActivity implements View.OnClickListener
         if (!LoginUtil.checkImageCode(etImageCode.getText().toString())) {
             return;
         }
-
 
         //3.向服务器请求给对应的手机号发送验证码
         HttpUtil.requestSendSMSForUser(etPhone.getText().toString(), etImageCode.getText().toString(), ssionId, new Callback() {

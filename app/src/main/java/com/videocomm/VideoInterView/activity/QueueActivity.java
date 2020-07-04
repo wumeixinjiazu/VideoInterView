@@ -152,7 +152,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
         Log.d(tag, "onResume");
         super.onResume();
     }
@@ -165,7 +164,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
 
     @Override
     protected void onDestroy() {
-        // TODO Auto-generated method stub
         super.onDestroy();
 
         if (sdkUnit != null) {
@@ -186,7 +184,6 @@ public class QueueActivity extends TitleActivity implements VComSDKEvent {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        // TODO Auto-generated method stub
         if (event.getAction() == KeyEvent.ACTION_DOWN
                 && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
 

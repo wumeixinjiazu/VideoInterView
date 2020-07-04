@@ -18,13 +18,14 @@ import com.videocomm.VideoInterView.utils.DisplayUtil;
  * @function[功能简介]
  **/
 public class DragSurfaceView extends SurfaceView {
-    int mLastX = 0;
-    int mLastY = 0;
+
     int screenWidth = DisplayUtil.getScreenWidth();
     int screenHeight = DisplayUtil.getScreenHeight();
     private String tag = getClass().getSimpleName();
     private int viewWidth;
     private int viewHeigh;
+    int mLastX = 0;
+    int mLastY = 0;
     private float downX;
     private float downY;
 
@@ -43,23 +44,9 @@ public class DragSurfaceView extends SurfaceView {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        Log.d(tag, "left" + left);
-        Log.d(tag, "top" + top);
-        Log.d(tag, "right" + right);
-        Log.d(tag, "bottom" + bottom);
-        Log.d(tag, "changed" + changed);
-        Log.d(tag, "getScreenWidth" + DisplayUtil.getScreenWidth());
-        Log.d(tag, "getScreenHeight" + DisplayUtil.getScreenHeight());
         viewWidth = right - left;
         viewHeigh = bottom - top;
     }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-    }
-
 
     /**
      * 让view能够随手自由拖动

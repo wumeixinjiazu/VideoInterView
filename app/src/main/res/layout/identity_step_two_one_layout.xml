@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#AFAFAF">
 
-    <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
+    <com.videocomm.VideoInterView.view.LocalCameraPreview
         android:id="@+id/ll_local"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-    </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
+    </com.videocomm.VideoInterView.view.LocalCameraPreview>
 
     <!--    <com.videocomm.VideoInterView.view.ViewfinderView-->
     <!--        android:id="@+id/finder_view"-->

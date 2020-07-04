@@ -255,7 +255,6 @@ public class HttpUtil {
     public static void requestFileDownload(String path, Callback callback) {
         String appid = SpUtil.getInstance().getString(SpUtil.APPID, "");
         RequestBody requestBody = new MultipartBody.Builder()
-                .addFormDataPart("appId", appid)
                 .addFormDataPart("path", path)
                 .build();
 

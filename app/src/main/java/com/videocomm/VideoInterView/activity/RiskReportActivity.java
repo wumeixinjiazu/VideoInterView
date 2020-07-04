@@ -12,7 +12,6 @@ import androidx.annotation.Nullable;
 import com.videocomm.VideoInterView.R;
 import com.videocomm.VideoInterView.activity.base.BaseActivity;
 import com.videocomm.VideoInterView.utils.DisplayUtil;
-import com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview;
 import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKDefine;
 import com.videocomm.mediasdk.VComSDKEvent;
@@ -27,7 +26,6 @@ import static com.videocomm.VideoInterView.Constant.mIntRemoteAudioOpen;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteChannelIndex;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteVideoClose;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteVideoOpen;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CONFERENCE_ACTIONCODE_JOIN;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_WRITELOG;
 
 /**

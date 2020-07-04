@@ -129,6 +129,7 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
                 if (response.code() != 200) {
                     return;
                 }
+
                 byte[] bytes = response.body().bytes();
                 Message obtain = Message.obtain();
                 obtain.what = HANDLER_FILE_DOWNLOAD_SUCCESS;
@@ -158,12 +159,9 @@ public class BusinessAdapter extends RecyclerView.Adapter<BusinessAdapter.Holder
             ivMask = itemView.findViewById(R.id.iv_business_mask);
             ivChoose = itemView.findViewById(R.id.iv_business_choose);
             tvName = itemView.findViewById(R.id.tv_business_name);
-            rlItem.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    businessAdapter.setSelectIndex(getLayoutPosition());
-                    businessAdapter.notifyDataSetChanged();
-                }
+            rlItem.setOnClickListener(v -> {
+                businessAdapter.setSelectIndex(getLayoutPosition());
+                businessAdapter.notifyDataSetChanged();
             });
 
 

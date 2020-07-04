@@ -8,13 +8,10 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,6 +26,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.videocomm.VideoInterView.Constant;
@@ -41,7 +39,7 @@ import com.videocomm.VideoInterView.utils.DialogFactory;
 import com.videocomm.VideoInterView.utils.JsonUtil;
 import com.videocomm.VideoInterView.utils.StringUtil;
 import com.videocomm.VideoInterView.utils.ToastUtil;
-import com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview;
+import com.videocomm.VideoInterView.view.LocalCameraPreview;
 import com.videocomm.mediasdk.VComMediaSDK;
 import com.videocomm.mediasdk.VComSDKEvent;
 
@@ -51,15 +49,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.videocomm.VideoInterView.Constant.MSG_TYPE_CHAT;
-import static com.videocomm.VideoInterView.Constant.mIntLocalAudioClose;
 import static com.videocomm.VideoInterView.Constant.mIntLocalAudioOpen;
 import static com.videocomm.VideoInterView.Constant.mIntLocalChannelIndex;
-import static com.videocomm.VideoInterView.Constant.mIntLocalVideoClose;
 import static com.videocomm.VideoInterView.Constant.mIntLocalVideoOpen;
-import static com.videocomm.VideoInterView.Constant.mIntRemoteAudioClose;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteAudioOpen;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteChannelIndex;
-import static com.videocomm.VideoInterView.Constant.mIntRemoteVideoClose;
 import static com.videocomm.VideoInterView.Constant.mIntRemoteVideoOpen;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CLIP_MODE_MAXIMUMAREA;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_CLIP_MODE_SHRINK;
@@ -69,7 +63,6 @@ import static com.videocomm.mediasdk.VComSDKDefine.VCOM_MEDIAFILE_EVENT_STOP;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUECTRL_HANGUPVIDEO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_QUEUEEVENT_HANGUPVIDEO;
 import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_CLIPMODE;
-import static com.videocomm.mediasdk.VComSDKDefine.VCOM_SDK_PARAM_TYPE_WRITELOG;
 
 /**
  * @author[wengcj]
@@ -87,9 +80,9 @@ public class VideoActivity extends BaseActivity implements
     private SurfaceView mSurfaceSelf;
     private SurfaceView mSurfaceOther;
     private SurfaceView mSurfaceRemote;
-    private LocalFullScreenCameraPreview llSurfaceLocal;
-    private LocalFullScreenCameraPreview llSurfaceOther;
-    private LocalFullScreenCameraPreview llSurfaceRemote;
+    private LocalCameraPreview llSurfaceLocal;
+    private LocalCameraPreview llSurfaceOther;
+    private LocalCameraPreview llSurfaceRemote;
 
     private Handler mHandler;
     private TimerTask mTimerTask;
@@ -151,10 +144,6 @@ public class VideoActivity extends BaseActivity implements
         sdkUnit.VCOM_SetVideoParamConfigure(0, 640, 480, 15, 450, 0);
 
         //设置本地视频
-//        LocalMediaShow mLocalMediaShow = new LocalMediaShow(mSurfaceSelf, mVideoApplication.getUserCode());
-//        mSurfaceSelf.getHolder().setSizeFromLayout();
-//        mSurfaceSelf.getHolder().addCallback(mLocalMediaShow);
-
         mSurfaceSelf = sdkUnit.VCOM_SetLocalVideoRender(mVideoApplication.getUserCode(), mIntLocalChannelIndex, llSurfaceLocal, this);
         mSurfaceSelf.setBackgroundColor(Color.TRANSPARENT);
         sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, mIntLocalAudioOpen, mIntLocalVideoOpen, "");
@@ -165,14 +154,6 @@ public class VideoActivity extends BaseActivity implements
      */
     private void initRemoteVideo(String remoteUserCode) {
         if (currentPeople < MAX_PEOPLE) {
-//            mSurfaceRemote = new SurfaceView(this);
-//            mSurfaceRemote.setBackgroundColor(Color.TRANSPARENT);
-//            mSurfaceRemote.setZOrderOnTop(true);
-//            llSurfaceRemote.addView(mSurfaceRemote);
-//            //设置远程视频
-//            RemoteMediaShow mRemoteMediaShow = new RemoteMediaShow(mSurfaceRemote, targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteAudioOpen);
-//            mSurfaceRemote.getHolder().addCallback(mRemoteMediaShow);
-
             targetUserName = remoteUserCode;
             mSurfaceRemote = sdkUnit.VCOM_SetRemoteVideoRender(targetUserName, mIntRemoteChannelIndex, llSurfaceRemote, this);
             mSurfaceRemote.setTag(targetUserName);//记录视频的用户id
@@ -195,7 +176,6 @@ public class VideoActivity extends BaseActivity implements
 
         //打开自己的音视频
         sdkUnit.VCOM_OpenLocalMediaStream(mIntLocalChannelIndex, mIntLocalVideoOpen, mIntLocalAudioOpen, "");
-
         if (isConnectRemote) {
             //打开其他其他用户的音视频
             sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, mIntRemoteChannelIndex, mIntRemoteVideoOpen, mIntRemoteVideoOpen, "");
@@ -283,6 +263,7 @@ public class VideoActivity extends BaseActivity implements
         llSurfaceLocal.setOnClickListener(this);
 
         llSurfaceOther.setAuto(false);
+        llSurfaceRemote.setAuto(false);
 
         //初始化聊天
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -438,17 +419,22 @@ public class VideoActivity extends BaseActivity implements
                         sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_SHRINK);
                         //设置横屏
                         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                        //设置裁剪模式
+                        //获取播放通道
                         iChannle = Integer.parseInt(streamIndex);
                         //设置第三人开启
+                        llSurfaceOther.setClickable(false);
                         isHasOther = true;
+                        llSurfaceLocal.setAuto(false);
                         //开启风险播放流
                         if (mSurfaceOther == null) {
                             mSurfaceOther = sdkUnit.VCOM_SetRemoteVideoRender(targetUserName, iChannle, llSurfaceOther, VideoActivity.this);
+//                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//                            params.gravity = Gravity.CENTER;
+//                            mSurfaceOther.setLayoutParams(params);
                             sdkUnit.VCOM_GetRemoteMediaStream(targetUserName, iChannle, mIntRemoteVideoOpen, mIntRemoteAudioOpen, "");
-//                            mSurfaceOther.setZOrderMediaOverlay(true);
                             //切换布局
                             switchParentPreview();
+                            sdkUnit.VCOM_SetSDKParamInt(VCOM_SDK_PARAM_TYPE_CLIPMODE, VCOM_CLIP_MODE_SHRINK);
                         }
                     }
                 }
@@ -532,27 +518,46 @@ public class VideoActivity extends BaseActivity implements
         super.onConfigurationChanged(newConfig);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             sdkUnit.VCOM_SetCameraDisplayOriOrientation();
+            adjustVideoParam();
         } else {
             sdkUnit.VCOM_SetCameraDisplayOriOrientation();
         }
     }
 
     /**
+     * 调整视频参数
+     */
+    private void adjustVideoParam() {
+        ConstraintLayout.LayoutParams remoteLayoutParams = (ConstraintLayout.LayoutParams) llSurfaceRemote.getLayoutParams();
+        ConstraintLayout.LayoutParams selfLayoutParams = (ConstraintLayout.LayoutParams) llSurfaceLocal.getLayoutParams();
+        //横屏设置为4：3
+        remoteLayoutParams.dimensionRatio = "h,4:3";
+        selfLayoutParams.dimensionRatio = "h,4:3";
+
+        llSurfaceRemote.setLayoutParams(remoteLayoutParams);
+        llSurfaceLocal.setLayoutParams(selfLayoutParams);
+    }
+
+    /**
      * 切换父控件布局参数已达到两个视频切换
      */
     private void switchParentPreview() {
-        LocalFullScreenCameraPreview localLayout = findViewById(R.id.ll_surface_local);
-        LocalFullScreenCameraPreview otherLayout = findViewById(R.id.ll_surface_other);
+        LocalCameraPreview localLayout = findViewById(R.id.ll_surface_local);
+        LocalCameraPreview otherLayout = findViewById(R.id.ll_surface_other);
         ViewGroup.LayoutParams localLayoutLayoutParams = localLayout.getLayoutParams();
         ViewGroup.LayoutParams otherLayoutParams = otherLayout.getLayoutParams();
 
         localLayout.setLayoutParams(otherLayoutParams);
-
         otherLayout.setLayoutParams(localLayoutLayoutParams);
 
-        mSurfaceSelf.setZOrderOnTop(true);
+        mSurfaceSelf.setZOrderMediaOverlay(true);
         mSurfaceSelf.setTranslationX(0);
+        llSurfaceOther.setClickable(false);
+        llSurfaceOther.setFocusable(false);
 
+        //提高两个小视频的权重
+        llSurfaceLocal.setElevation(100f);
+        llSurfaceRemote.setElevation(100f);
     }
 
     private int mLargeViewId = R.id.ll_surface_remote;

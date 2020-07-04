@@ -44,6 +44,8 @@ public class QueueActivity1 extends TitleActivity implements View.OnClickListene
             case R.id.btn_queue://排队
                 startActivity(new Intent(QueueActivity1.this, RiskReportActivity.class));
                 break;
+            default:
+                break;
         }
     }
 }

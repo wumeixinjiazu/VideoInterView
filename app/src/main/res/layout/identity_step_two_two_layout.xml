@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview
+        <com.videocomm.VideoInterView.view.LocalCameraPreview
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -23,7 +23,7 @@
                 android:id="@+id/surface_living_reco"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-        </com.videocomm.VideoInterView.view.LocalFullScreenCameraPreview>
+        </com.videocomm.VideoInterView.view.LocalCameraPreview>
 
 
         <com.videocomm.VideoInterView.view.RoundView

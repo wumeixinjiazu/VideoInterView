@@ -75,7 +75,6 @@ public class BaseActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.d(tag, "onStop");
-
     }
 
     @Override

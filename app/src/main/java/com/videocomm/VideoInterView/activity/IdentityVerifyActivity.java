@@ -330,8 +330,8 @@ public class IdentityVerifyActivity extends TitleActivity implements View.OnClic
         //设置活体动作
         List<LivenessTypeEnum> actionList = new ArrayList<>();
         actionList.add(LivenessTypeEnum.Eye);
-        actionList.add(LivenessTypeEnum.Mouth);
-        actionList.add(LivenessTypeEnum.HeadDown);
+//        actionList.add(LivenessTypeEnum.Mouth);
+//        actionList.add(LivenessTypeEnum.HeadDown);
         config.setLivenessTypeList(actionList);
         //设置活体动作是否随机
         config.setLivenessRandom(false);
